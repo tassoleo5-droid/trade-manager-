@@ -251,9 +251,10 @@ function renderMode(posId) {
 }
 
 function renderPositions(positions) {
+ const anyFocused = document.activeElement && document.activeElement.tagName === 'INPUT';
+  if (anyFocused) return;
   const el = document.getElementById('positions');
-  if (!positions.length) {
-    el.innerHTML = '<div class="empty">Aucune position ouverte</div>';
+  if (!positions.length) {    el.innerHTML = '<div class="empty">Aucune position ouverte</div>';
     return;
   }
   el.innerHTML = positions.map(p => {
