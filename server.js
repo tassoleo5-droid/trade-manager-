@@ -58,16 +58,10 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
   const { account_id } = req.body;
   if (!account_id) return res.status(400).json({ error: 'Account ID requis' });
-  try {
-    const response = await fetch(`${META_API}/users/current/accounts/${account_id}/positions`, {
-      headers: { 'auth-token': METAAPI_TOKEN }
-    });
-    if (!response.ok) return res.status(400).json({ error: 'Account ID invalide ou introuvable' });
-    const db = loadDB();
-    const user = db.users.find(u => u.id === req.user.id);
-    if (user) { user.mt5_account_id = account_id; saveDB(db); }
-    res.json({ success: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  const db = loadDB();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (user) { user.mt5_account_id = account_id; saveDB(db); }
+  res.json({ success: true });
 });
 
 app.post('/api/trade', authMiddleware, async (req, res) => {
