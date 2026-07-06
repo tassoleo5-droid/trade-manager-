@@ -3,140 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Manager</title>
+<title>TradeFlow</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
-.app { max-width: 480px; margin: 0 auto; padding: 1rem; }
-.header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; }
-.title { font-size: 20px; font-weight: 600; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-.dot.green { background: #22c55e; }
-.dot.orange { animation: pulse 1s infinite; background: #f59e0b; }
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c26;
+  --border: #2a2a3a;
+  --accent: #6c63ff;
+  --accent2: #4ade80;
+  --danger: #f87171;
+  --text: #f0f0ff;
+  --muted: #6b6b8a;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* AUTH */
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; }
+.auth-logo { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 0.25rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.auth-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 2rem; }
+.auth-tabs { display: flex; background: var(--surface2); border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; }
+.auth-tab { flex: 1; height: 36px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.2s; }
+.auth-tab.active { background: var(--accent); color: white; }
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.field input { width: 100%; height: 48px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0 16px; font-size: 15px; color: var(--text); }
+.field input:focus { outline: none; border-color: var(--accent); }
+.btn-main { width: 100%; height: 52px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-main:active { opacity: 0.8; }
+.auth-error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--danger); margin-bottom: 1rem; display: none; }
+
+/* APP */
+.app { display: none; max-width: 500px; margin: 0 auto; padding: 0 1rem 2rem; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+.topbar-logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.status-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px; font-size: 13px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status-dot.green { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+.status-dot.orange { background: #f59e0b; animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
-.card { background: white; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.card-title { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
-input[type=text], input[type=password] { width: 100%; height: 44px; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 0 12px; font-size: 15px; margin-bottom: 10px; background: #fafafa; }
-input[type=text]:focus, input[type=password]:focus { outline: none; border-color: #3b82f6; background: white; }
-.btn { width: 100%; height: 48px; border-radius: 12px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
-.btn-primary { background: #1a1a1a; color: white; }
-.btn-primary:active { opacity: 0.8; }
-.btn-danger { background: #fee2e2; color: #dc2626; margin-top: 8px; }
-.position { background: white; border-radius: 16px; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.pos-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.pos-symbol { font-size: 18px; font-weight: 700; }
-.badge { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
-.buy { background: #dcfce7; color: #16a34a; }
-.sell { background: #fee2e2; color: #dc2626; }
-.profit { font-size: 16px; font-weight: 700; }
-.pos-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 0.75rem; }
-.stat { background: #f8f8f8; border-radius: 10px; padding: 8px; }
-.stat-label { font-size: 10px; color: #888; margin-bottom: 2px; }
+.btn-logout { background: transparent; border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+/* MT5 CONNECT */
+.mt5-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.mt5-title { font-size: 16px; font-weight: 600; margin-bottom: 0.5rem; }
+.mt5-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
+.mt5-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.mt5-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+.mt5-field input { width: 100%; height: 42px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; font-size: 14px; color: var(--text); }
+.mt5-field input:focus { outline: none; border-color: var(--accent); }
+.mt5-field.full { grid-column: span 2; }
+.btn-connect { width: 100%; height: 46px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; }
+.connected-badge { display: flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 12px; padding: 12px 16px; font-size: 14px; color: var(--accent2); font-weight: 600; }
+
+/* POSITIONS */
+.section-title { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+.refresh-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 12px; }
+.position { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
+.pos-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.pos-left { display: flex; align-items: center; gap: 10px; }
+.pos-symbol { font-size: 20px; font-weight: 700; }
+.badge { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.buy { background: rgba(74,222,128,0.15); color: var(--accent2); }
+.sell { background: rgba(248,113,113,0.15); color: var(--danger); }
+.pos-profit { font-size: 18px; font-weight: 700; }
+.pos-profit.pos { color: var(--accent2); }
+.pos-profit.neg { color: var(--danger); }
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+.stat { background: var(--surface2); border-radius: 12px; padding: 10px; }
+.stat-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
 .stat-value { font-size: 13px; font-weight: 600; }
-.tp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.tp-group label { font-size: 11px; color: #888; display: block; margin-bottom: 3px; }
-.tp-group input { width: 100%; height: 36px; border: 1.5px solid #e5e5e5; border-radius: 8px; padding: 0 8px; font-size: 13px; background: #fafafa; margin: 0; }
-.tp-group input:focus { outline: none; border-color: #3b82f6; background: white; }
-.events { margin-top: 0.75rem; border-top: 1px solid #f0f0f0; padding-top: 0.75rem; }
-.event { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; padding: 3px 0; }
-.ev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.ev-done { background: #22c55e; }
-.ev-pending { background: #e5e5e5; }
-.log { background: #1a1a1a; border-radius: 12px; padding: 0.75rem; max-height: 160px; overflow-y: auto; }
-.log-line { font-size: 12px; font-family: monospace; padding: 2px 0; border-bottom: 1px solid #2a2a2a; }
+.tp-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 8px; }
+.tp-group label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+.tp-group input { width: 100%; height: 38px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0 8px; font-size: 13px; color: var(--text); }
+.tp-group input:focus { outline: none; border-color: var(--accent); }
+.mode-label { font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 0.75rem; min-height: 16px; }
+.events-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ev { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); background: var(--surface2); border-radius: 8px; padding: 6px 10px; }
+.ev-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+.ev-dot.done { background: var(--accent2); box-shadow: 0 0 4px var(--accent2); }
+.ev-dot.wait { background: var(--muted); }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 1rem; }
+.empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+
+/* LOG */
+.log-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-top: 1.5rem; }
+.log-inner { max-height: 150px; overflow-y: auto; }
+.log-line { font-size: 12px; font-family: monospace; padding: 3px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
 .log-line:last-child { border: none; }
 .log-ok { color: #4ade80; }
 .log-warn { color: #fbbf24; }
-.log-default { color: #aaa; }
-.empty { text-align: center; padding: 2rem; color: #aaa; font-size: 15px; }
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <span class="title">Trade Manager</span>
-    <div class="dot" id="dot"></div>
+
+<!-- AUTH -->
+<div class="auth-wrap" id="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">TradeFlow</div>
+    <div class="auth-sub">Gérez vos trades automatiquement</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab" onclick="switchTab('register')">Inscription</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="vous@email.com" /></div>
+    <div class="field"><label>Mot de passe</label><input type="password" id="auth-password" placeholder="••••••••" /></div>
+    <button class="btn-main" id="auth-btn" onclick="handleAuth()">Se connecter</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <span class="topbar-logo">TradeFlow</span>
+    <div class="topbar-right">
+      <div class="status-pill"><span class="status-dot" id="status-dot"></span><span id="status-text">Déconnecté</span></div>
+      <button class="btn-logout" onclick="logout()">Quitter</button>
+    </div>
   </div>
 
-  <div class="card" id="config">
-    <div class="card-title">Connexion</div>
-    <input type="password" id="api-key" placeholder="Clé API MetaApi" />
-    <input type="text" id="acc-id" placeholder="Account ID" />
-    <button class="btn btn-primary" onclick="connect()">Se connecter</button>
-    <button class="btn btn-danger" onclick="disconnect()" id="btn-dc" style="display:none">Déconnecter</button>
+  <!-- MT5 connexion -->
+  <div id="mt5-section">
+    <div class="mt5-card" id="mt5-connect-card">
+      <div class="mt5-title">Connecter votre compte MT5</div>
+      <div class="mt5-sub">Saisissez vos identifiants MetaTrader 5. Vos données sont chiffrées et sécurisées.</div>
+      <div class="mt5-grid">
+        <div class="mt5-field"><label>Login MT5</label><input type="text" id="mt5-login" placeholder="12345678" /></div>
+        <div class="mt5-field"><label>Mot de passe</label><input type="password" id="mt5-password" placeholder="••••••••" /></div>
+        <div class="mt5-field full"><label>Serveur broker</label><input type="text" id="mt5-server" placeholder="ICMarkets-Live01" /></div>
+      </div>
+      <button class="btn-connect" onclick="connectMT5()">Connecter MT5</button>
+    </div>
+    <div class="connected-badge" id="mt5-connected" style="display:none;margin-bottom:1.5rem;">
+      ✓ Compte MT5 connecté et actif
+    </div>
   </div>
 
-  <div id="main" style="display:none">
-    <div id="positions"></div>
-    <div class="card">
-      <div class="card-title">Journal</div>
-      <div class="log" id="log"><div class="log-line log-default">En attente...</div></div>
+  <!-- Positions -->
+  <div id="trading-section" style="display:none">
+    <div class="section-title">
+      Positions ouvertes
+      <button class="refresh-btn" onclick="poll()">↻ Actualiser</button>
+    </div>
+    <div id="positions-list"></div>
+
+    <div class="log-card">
+      <div class="section-title" style="margin-bottom:0.75rem;">Journal</div>
+      <div class="log-inner" id="log-inner"><div class="log-line">En attente...</div></div>
     </div>
   </div>
 </div>
 
 <script>
-let apiKey = localStorage.getItem('tm_apikey') || '';
-let accountId = localStorage.getItem('tm_accountid') || '';
-let interval = null, states = {}, logs = [];
+let token = localStorage.getItem('tf_token') || '';
+let userEmail = localStorage.getItem('tf_email') || '';
+let hasMT5 = false;
+let interval = null;
+let states = {};
+let logs = [];
+let currentTab = 'login';
 
-function addLog(msg, type='default') {
-  const t = new Date().toLocaleTimeString('fr-FR');
-  logs.unshift({ t, msg, type });
-  if (logs.length > 40) logs.pop();
-  document.getElementById('log').innerHTML = logs.map(l =>
-    `<div class="log-line log-${l.type}">[${l.t}] ${l.msg}</div>`).join('');
+// AUTH
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('auth-btn').textContent = tab === 'login' ? 'Se connecter' : "S'inscrire";
+  document.getElementById('auth-error').style.display = 'none';
 }
 
-async function api(method, path, body) {
-  const res = await fetch('/api/proxy', {
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  if (!email || !password) return showError('Remplis tous les champs.');
+  try {
+    const res = await fetch(`/api/${currentTab === 'login' ? 'login' : 'register'}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return showError(data.error || 'Erreur');
+    if (currentTab === 'register') {
+      switchTab('login');
+      showError('Compte créé ! Connecte-toi maintenant.');
+      document.getElementById('auth-error').style.color = '#4ade80';
+      return;
+    }
+    token = data.token;
+    userEmail = data.email;
+    localStorage.setItem('tf_token', token);
+    localStorage.setItem('tf_email', userEmail);
+    hasMT5 = !!data.mt5_account_id;
+    showApp();
+  } catch(e) { showError('Erreur serveur'); }
+}
+
+function showApp() {
+  document.getElementById('auth-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  if (hasMT5) {
+    document.getElementById('mt5-connect-card').style.display = 'none';
+    document.getElementById('mt5-connected').style.display = 'flex';
+    document.getElementById('trading-section').style.display = 'block';
+    startPolling();
+  }
+}
+
+function logout() {
+  localStorage.removeItem('tf_token');
+  localStorage.removeItem('tf_email');
+  clearInterval(interval);
+  token = ''; userEmail = ''; hasMT5 = false; states = {};
+  document.getElementById('auth-wrap').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// MT5
+async function connectMT5() {
+  const login = document.getElementById('mt5-login').value.trim();
+  const password = document.getElementById('mt5-password').value.trim();
+  const server = document.getElementById('mt5-server').value.trim();
+  if (!login || !password || !server) return alert('Remplis tous les champs MT5.');
+  try {
+    const res = await fetch('/api/connect-mt5', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ login, password, server })
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.error || 'Erreur connexion MT5');
+    hasMT5 = true;
+    document.getElementById('mt5-connect-card').style.display = 'none';
+    document.getElementById('mt5-connected').style.display = 'flex';
+    document.getElementById('trading-section').style.display = 'block';
+    addLog('Compte MT5 connecté avec succès', 'ok');
+    startPolling();
+  } catch(e) { alert('Erreur serveur: ' + e.message); }
+}
+
+// TRADING
+async function tradeApi(method, path, body) {
+  const res = await fetch('/api/trade', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ method, path: `/users/current/accounts/${accountId}${path}`, body, token: apiKey })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ method, path, body })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json().catch(() => ({}));
 }
 
-async function connect() {
-  apiKey = document.getElementById('api-key').value.trim();
-  accountId = document.getElementById('acc-id').value.trim();
-  if (!apiKey || !accountId) { alert('Remplis les deux champs.'); return; }
-  localStorage.setItem('tm_apikey', apiKey);
-  localStorage.setItem('tm_accountid', accountId);
-  document.getElementById('dot').className = 'dot orange';
-  try {
-    await api('GET', '/positions');
-    document.getElementById('dot').className = 'dot green';
-    document.getElementById('btn-dc').style.display = '';
-    document.getElementById('main').style.display = '';
-    addLog('Connecté à MetaApi', 'ok');
-    poll();
-    interval = setInterval(poll, 3000);
-  } catch(e) {
-    document.getElementById('dot').className = 'dot';
-    addLog('Erreur connexion: ' + e.message, 'warn');
-    alert('Connexion échouée. Vérifie ta clé API et ton Account ID.');
-  }
-}
-
-function disconnect() {
-  clearInterval(interval);
-  document.getElementById('dot').className = 'dot';
-  document.getElementById('btn-dc').style.display = 'none';
-  document.getElementById('main').style.display = 'none';
-  states = {};
-  addLog('Déconnecté');
+function startPolling() {
+  setDot('orange', 'Connexion...');
+  poll();
+  interval = setInterval(poll, 3000);
 }
 
 async function poll() {
   try {
-    const positions = await api('GET', '/positions');
+    const positions = await tradeApi('GET', '/positions');
+    setDot('green', 'Connecté');
     renderPositions(Array.isArray(positions) ? positions : []);
-    for (const p of (Array.isArray(positions) ? positions : [])) {
-      await applyRules(p);
-    }
-  } catch(e) { addLog('Erreur: ' + e.message, 'warn'); }
+    for (const p of (Array.isArray(positions) ? positions : [])) await applyRules(p);
+  } catch(e) {
+    setDot('', 'Erreur');
+    addLog('Erreur polling: ' + e.message, 'warn');
+  }
+}
+
+function setDot(state, text) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot' + (state ? ' ' + state : '');
+  document.getElementById('status-text').textContent = text;
 }
 
 function initState(p) {
@@ -170,133 +318,108 @@ async function applyRules(p) {
 
   if (!s.beDone && profit >= s.r) {
     try {
-      await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+      await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
       s.beDone = true;
       addLog(`BE déclenché ${p.symbol} | SL → ${s.entry.toFixed(5)}`, 'ok');
     } catch(e) { addLog('Erreur BE: ' + e.message, 'warn'); }
   }
 
-  if (s.tp1 && !s.tp1Done) {
-    const reached = s.isBuy ? price >= s.tp1 : price <= s.tp1;
-    if (reached) {
-      try {
-        if (mode === 'single') {
-          await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-          s.tp1Done = true;
-          addLog(`TP1 atteint ${p.symbol} | Position fermée à 100%`, 'ok');
-        } else {
-          const vol = Math.round(s.initialVolume * 0.5 * 100) / 100;
-          if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-          const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
-          await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
-          s.tp1Done = true;
-          addLog(`TP1 atteint ${p.symbol} | Fermé 50% | SL → ${newSL.toFixed(5)}`, 'ok');
-        }
-      } catch(e) { addLog('Erreur TP1: ' + e.message, 'warn'); }
-    }
+  if (s.tp1 && !s.tp1Done && (s.isBuy ? price >= s.tp1 : price <= s.tp1)) {
+    try {
+      if (mode === 'single') {
+        await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+        s.tp1Done = true;
+        addLog(`TP1 ${p.symbol} | Fermé 100%`, 'ok');
+      } else {
+        const vol = Math.round(s.initialVolume * 0.5 * 100) / 100;
+        if (vol > 0) await tradeApi('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
+        const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
+        await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
+        s.tp1Done = true;
+        addLog(`TP1 ${p.symbol} | Fermé 50% | SL → ${newSL.toFixed(5)}`, 'ok');
+      }
+    } catch(e) { addLog('Erreur TP1: ' + e.message, 'warn'); }
   }
 
-  if (s.tp2 && !s.tp2Done && s.tp1Done) {
-    const reached = s.isBuy ? price >= s.tp2 : price <= s.tp2;
-    if (reached) {
-      try {
-        if (mode === 'double') {
-          await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-          s.tp2Done = true;
-          addLog(`TP2 atteint ${p.symbol} | Position fermée à 100%`, 'ok');
-        } else {
-          const vol = Math.round(p.volume * 0.5 * 100) / 100;
-          if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-          await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
-          s.tp2Done = true;
-          addLog(`TP2 atteint ${p.symbol} | Fermé 50% restant | SL → entrée`, 'ok');
-        }
-      } catch(e) { addLog('Erreur TP2: ' + e.message, 'warn'); }
-    }
+  if (s.tp2 && !s.tp2Done && s.tp1Done && (s.isBuy ? price >= s.tp2 : price <= s.tp2)) {
+    try {
+      if (mode === 'double') {
+        await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+        s.tp2Done = true;
+        addLog(`TP2 ${p.symbol} | Fermé 100%`, 'ok');
+      } else {
+        const vol = Math.round(p.volume * 0.5 * 100) / 100;
+        if (vol > 0) await tradeApi('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
+        await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+        s.tp2Done = true;
+        addLog(`TP2 ${p.symbol} | SL → entrée`, 'ok');
+      }
+    } catch(e) { addLog('Erreur TP2: ' + e.message, 'warn'); }
   }
 
-  if (s.tp3 && !s.tp3Done && s.tp2Done) {
-    const reached = s.isBuy ? price >= s.tp3 : price <= s.tp3;
-    if (reached) {
-      try {
-        await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-        s.tp3Done = true;
-        addLog(`TP3 atteint ${p.symbol} | Position fermée totalement`, 'ok');
-      } catch(e) { addLog('Erreur TP3: ' + e.message, 'warn'); }
-    }
+  if (s.tp3 && !s.tp3Done && s.tp2Done && (s.isBuy ? price >= s.tp3 : price <= s.tp3)) {
+    try {
+      await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+      s.tp3Done = true;
+      addLog(`TP3 ${p.symbol} | Position fermée`, 'ok');
+    } catch(e) { addLog('Erreur TP3: ' + e.message, 'warn'); }
   }
 }
 
 function updateTP(posId, tp, val) {
-  if (states[posId]) {
-    states[posId][tp] = parseFloat(val) || 0;
-    renderMode(posId);
-  }
+  if (states[posId]) { states[posId][tp] = parseFloat(val) || 0; renderMode(posId); }
 }
 
 function renderMode(posId) {
-  const s = states[posId];
-  if (!s) return;
   const el = document.getElementById('mode_' + posId);
-  if (!el) return;
-  const labels = { single: 'TP1 seul → ferme 100%', double: 'TP1 + TP2 → 50% / 50%', triple: 'TP1 + TP2 + TP3 → 50% / 25% / reste', none: '' };
-  el.textContent = labels[getMode(s)] || '';
+  if (!el || !states[posId]) return;
+  const labels = { single: 'TP1 seul → ferme 100%', double: 'TP1 + TP2 → 50% / clôture', triple: 'TP1 + TP2 + TP3 → 50% / 25% / reste', none: '' };
+  el.textContent = labels[getMode(states[posId])] || '';
 }
 
 function renderPositions(positions) {
-  const anyFocused = document.activeElement && document.activeElement.tagName === 'INPUT';
+  const anyFocused = document.activeElement?.tagName === 'INPUT';
   if (anyFocused) return;
-  const el = document.getElementById('positions');
+  const el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = '<div class="empty">Aucune position ouverte</div>';
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Aucune position ouverte</div><div>Ouvrez un trade sur MT5 pour commencer</div></div>`;
     return;
   }
   el.innerHTML = positions.map(p => {
     const s = states[p.id] || {};
     const isBuy = p.type === 'POSITION_TYPE_BUY';
     const profit = p.profit || 0;
-    const profitColor = profit >= 0 ? '#16a34a' : '#dc2626';
     const r = s.r || 0;
     const price = p.currentPrice || p.openPrice;
     const profitR = r > 0 ? ((isBuy ? price - s.entry : s.entry - price) / r).toFixed(2) : '—';
     return `
     <div class="position">
-      <div class="pos-header">
-        <div style="display:flex;align-items:center;gap:8px;">
+      <div class="pos-top">
+        <div class="pos-left">
           <span class="pos-symbol">${p.symbol}</span>
           <span class="badge ${isBuy?'buy':'sell'}">${isBuy?'BUY':'SELL'}</span>
         </div>
-        <span class="profit" style="color:${profitColor}">${profit>=0?'+':''}${profit.toFixed(2)}$</span>
+        <span class="pos-profit ${profit>=0?'pos':'neg'}">${profit>=0?'+':''}${profit.toFixed(2)}$</span>
       </div>
-      <div class="pos-stats">
+      <div class="stats-row">
         <div class="stat"><div class="stat-label">Entrée</div><div class="stat-value">${p.openPrice?.toFixed(5)}</div></div>
         <div class="stat"><div class="stat-label">SL actuel</div><div class="stat-value">${p.stopLoss?.toFixed(5)||'—'}</div></div>
         <div class="stat"><div class="stat-label">Profit R</div><div class="stat-value">${profitR}R</div></div>
       </div>
-      <div class="tp-grid">
-        <div class="tp-group">
-          <label>TP1</label>
-          <input type="text" inputmode="decimal" id="tp1_${p.id}" placeholder="1.14500" oninput="updateTP('${p.id}','tp1',this.value)" />
-        </div>
-        <div class="tp-group">
-          <label>TP2 <span style="color:#aaa;font-weight:400;">(optionnel)</span></label>
-          <input type="text" inputmode="decimal" id="tp2_${p.id}" placeholder="1.14700" oninput="updateTP('${p.id}','tp2',this.value)" />
-        </div>
-        <div class="tp-group">
-          <label>TP3 <span style="color:#aaa;font-weight:400;">(optionnel)</span></label>
-          <input type="text" inputmode="decimal" id="tp3_${p.id}" placeholder="1.15000" oninput="updateTP('${p.id}','tp3',this.value)" />
-        </div>
+      <div class="tp-row">
+        <div class="tp-group"><label>TP1</label><input type="text" inputmode="decimal" id="tp1_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp1',this.value)" /></div>
+        <div class="tp-group"><label>TP2 (opt.)</label><input type="text" inputmode="decimal" id="tp2_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp2',this.value)" /></div>
+        <div class="tp-group"><label>TP3 (opt.)</label><input type="text" inputmode="decimal" id="tp3_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp3',this.value)" /></div>
       </div>
-      <div id="mode_${p.id}" style="font-size:11px;color:#3b82f6;margin-top:6px;font-weight:600;"></div>
-      <div class="events">
-        <div class="event"><span class="ev-dot ${s.beDone?'ev-done':'ev-pending'}"></span>Break-even ${s.beDone?'✓ déclenché':'en attente +1R'}</div>
-        <div class="event"><span class="ev-dot ${s.tp1Done?'ev-done':'ev-pending'}"></span>TP1 ${s.tp1Done?'✓ atteint':'en attente'}</div>
-        <div class="event"><span class="ev-dot ${s.tp2Done?'ev-done':'ev-pending'}"></span>TP2 ${s.tp2Done?'✓ atteint':s.tp2?'en attente':'non défini'}</div>
-        <div class="event"><span class="ev-dot ${s.tp3Done?'ev-done':'ev-pending'}"></span>TP3 ${s.tp3Done?'✓ fermé':s.tp3?'en attente':'non défini'}</div>
+      <div class="mode-label" id="mode_${p.id}"></div>
+      <div class="events-row">
+        <div class="ev"><span class="ev-dot ${s.beDone?'done':'wait'}"></span>Break-even ${s.beDone?'✓':'en attente'}</div>
+        <div class="ev"><span class="ev-dot ${s.tp1Done?'done':'wait'}"></span>TP1 ${s.tp1Done?'✓':'en attente'}</div>
+        <div class="ev"><span class="ev-dot ${s.tp2Done?'done':'wait'}"></span>TP2 ${s.tp2Done?'✓':s.tp2?'en attente':'—'}</div>
+        <div class="ev"><span class="ev-dot ${s.tp3Done?'done':'wait'}"></span>TP3 ${s.tp3Done?'✓':s.tp3?'en attente':'—'}</div>
       </div>
     </div>`;
   }).join('');
-
   for (const p of positions) {
     const s = states[p.id];
     if (!s) continue;
@@ -308,8 +431,30 @@ function renderPositions(positions) {
   }
 }
 
-document.getElementById('api-key').value = apiKey;
-document.getElementById('acc-id').value = accountId;
+function addLog(msg, type='default') {
+  const t = new Date().toLocaleTimeString('fr-FR');
+  logs.unshift({ t, msg, type });
+  if (logs.length > 40) logs.pop();
+  document.getElementById('log-inner').innerHTML = logs.map(l =>
+    `<div class="log-line log-${l.type}">[${l.t}] ${l.msg}</div>`).join('');
+}
+
+// Auto-login si token existant
+if (token) {
+  fetch('/api/trade', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ method: 'GET', path: '/positions' })
+  }).then(res => {
+    if (res.ok) {
+      hasMT5 = true;
+      showApp();
+    } else {
+      localStorage.removeItem('tf_token');
+      token = '';
+    }
+  }).catch(() => {});
+}
 </script>
 </body>
 </html>
