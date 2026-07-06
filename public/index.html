@@ -16,8 +16,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 .card { background: white; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .card-title { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
-input { width: 100%; height: 44px; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 0 12px; font-size: 15px; margin-bottom: 10px; background: #fafafa; }
-input:focus { outline: none; border-color: #3b82f6; background: white; }
+input[type=text], input[type=password] { width: 100%; height: 44px; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 0 12px; font-size: 15px; margin-bottom: 10px; background: #fafafa; }
+input[type=text]:focus, input[type=password]:focus { outline: none; border-color: #3b82f6; background: white; }
 .btn { width: 100%; height: 48px; border-radius: 12px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
 .btn-primary { background: #1a1a1a; color: white; }
 .btn-primary:active { opacity: 0.8; }
@@ -35,7 +35,9 @@ input:focus { outline: none; border-color: #3b82f6; background: white; }
 .stat-value { font-size: 13px; font-weight: 600; }
 .tp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .tp-group label { font-size: 11px; color: #888; display: block; margin-bottom: 3px; }
-.tp-group input { height: 36px; font-size: 13px; margin: 0; }
+.tp-group input { width: 100%; height: 36px; border: 1.5px solid #e5e5e5; border-radius: 8px; padding: 0 8px; font-size: 13px; background: #fafafa; margin: 0; }
+.tp-group input:focus { outline: none; border-color: #3b82f6; background: white; }
+.tp-optional { font-size: 10px; color: #aaa; display: block; margin-top: 2px; }
 .events { margin-top: 0.75rem; border-top: 1px solid #f0f0f0; padding-top: 0.75rem; }
 .event { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; padding: 3px 0; }
 .ev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -48,6 +50,7 @@ input:focus { outline: none; border-color: #3b82f6; background: white; }
 .log-warn { color: #fbbf24; }
 .log-default { color: #aaa; }
 .empty { text-align: center; padding: 2rem; color: #aaa; font-size: 15px; }
+.mode-badge { font-size: 10px; padding: 2px 6px; border-radius: 99px; background: #eff6ff; color: #3b82f6; font-weight: 600; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -147,13 +150,23 @@ function initState(p) {
   }
 }
 
+function getMode(s) {
+  if (s.tp1 && s.tp2 && s.tp3) return 'triple';
+  if (s.tp1 && s.tp2) return 'double';
+  if (s.tp1) return 'single';
+  return 'none';
+}
+
 async function applyRules(p) {
   initState(p);
   const s = states[p.id];
   if (!s.r) return;
   const price = p.currentPrice || p.openPrice;
   const profit = s.isBuy ? price - s.entry : s.entry - price;
+  const mode = getMode(s);
+  if (mode === 'none') return;
 
+  // Break-even : toujours actif dès +1R
   if (!s.beDone && profit >= s.r) {
     try {
       await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
@@ -162,34 +175,79 @@ async function applyRules(p) {
     } catch(e) { addLog('Erreur BE: ' + e.message, 'warn'); }
   }
 
-  if (s.tp1 && !s.tp1Done && (s.isBuy ? price >= s.tp1 : price <= s.tp1)) {
-    try {
-      const vol = Math.round(s.initialVolume * 0.5 * 100) / 100;
-      if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-      const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
-      await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
-      s.tp1Done = true;
-      addLog(`TP1 atteint ${p.symbol} | Fermé ${vol} lots | SL → ${newSL.toFixed(5)}`, 'ok');
-    } catch(e) { addLog('Erreur TP1: ' + e.message, 'warn'); }
+  // TP1
+  if (s.tp1 && !s.tp1Done) {
+    const reached = s.isBuy ? price >= s.tp1 : price <= s.tp1;
+    if (reached) {
+      try {
+        if (mode === 'single') {
+          // TP1 seul : ferme 100% de la position
+          await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+          s.tp1Done = true;
+          addLog(`TP1 atteint ${p.symbol} | Position fermée à 100%`, 'ok');
+        } else {
+          // TP1 avec TP2 : ferme 50% du volume initial
+          const vol = Math.round(s.initialVolume * 0.5 * 100) / 100;
+          if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
+          const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
+          await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
+          s.tp1Done = true;
+          addLog(`TP1 atteint ${p.symbol} | Fermé 50% | SL → ${newSL.toFixed(5)}`, 'ok');
+        }
+      } catch(e) { addLog('Erreur TP1: ' + e.message, 'warn'); }
+    }
   }
 
-  if (s.tp2 && !s.tp2Done && (s.isBuy ? price >= s.tp2 : price <= s.tp2)) {
-    try {
-      const vol = Math.round(p.volume * 0.5 * 100) / 100;
-      if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-      await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
-      s.tp2Done = true;
-      addLog(`TP2 atteint ${p.symbol} | SL → entrée`, 'ok');
-    } catch(e) { addLog('Erreur TP2: ' + e.message, 'warn'); }
+  // TP2
+  if (s.tp2 && !s.tp2Done && s.tp1Done) {
+    const reached = s.isBuy ? price >= s.tp2 : price <= s.tp2;
+    if (reached) {
+      try {
+        if (mode === 'double') {
+          // TP2 sans TP3 : ferme tout le restant
+          await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+          s.tp2Done = true;
+          addLog(`TP2 atteint ${p.symbol} | Position fermée à 100%`, 'ok');
+        } else {
+          // TP2 avec TP3 : ferme 50% du restant
+          const vol = Math.round(p.volume * 0.5 * 100) / 100;
+          if (vol > 0) await api('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
+          await api('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+          s.tp2Done = true;
+          addLog(`TP2 atteint ${p.symbol} | Fermé 50% restant | SL → entrée`, 'ok');
+        }
+      } catch(e) { addLog('Erreur TP2: ' + e.message, 'warn'); }
+    }
   }
 
-  if (s.tp3 && !s.tp3Done && (s.isBuy ? price >= s.tp3 : price <= s.tp3)) {
-    try {
-      await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-      s.tp3Done = true;
-      addLog(`TP3 atteint ${p.symbol} | Position fermée`, 'ok');
-    } catch(e) { addLog('Erreur TP3: ' + e.message, 'warn'); }
+  // TP3
+  if (s.tp3 && !s.tp3Done && s.tp2Done) {
+    const reached = s.isBuy ? price >= s.tp3 : price <= s.tp3;
+    if (reached) {
+      try {
+        await api('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
+        s.tp3Done = true;
+        addLog(`TP3 atteint ${p.symbol} | Position fermée totalement`, 'ok');
+      } catch(e) { addLog('Erreur TP3: ' + e.message, 'warn'); }
+    }
   }
+}
+
+function updateTP(posId, tp, val) {
+  if (states[posId]) {
+    states[posId][tp] = parseFloat(val) || 0;
+    renderMode(posId);
+  }
+}
+
+function renderMode(posId) {
+  const s = states[posId];
+  if (!s) return;
+  const el = document.getElementById('mode_' + posId);
+  if (!el) return;
+  const mode = getMode(s);
+  const labels = { single: 'TP1 seul → ferme 100%', double: 'TP1 + TP2 → 50% / 50%', triple: 'TP1 + TP2 + TP3 → 50% / 25% / reste', none: '' };
+  el.textContent = labels[mode] || '';
 }
 
 function renderPositions(positions) {
@@ -221,15 +279,25 @@ function renderPositions(positions) {
         <div class="stat"><div class="stat-label">Profit R</div><div class="stat-value">${profitR}R</div></div>
       </div>
       <div class="tp-grid">
-        <div class="tp-group"><label>TP1</label><input type="number" id="tp1_${p.id}" step="0.00001" placeholder="Prix" onchange="updateTP('${p.id}','tp1',this.value)" /></div>
-        <div class="tp-group"><label>TP2</label><input type="number" id="tp2_${p.id}" step="0.00001" placeholder="Prix" onchange="updateTP('${p.id}','tp2',this.value)" /></div>
-        <div class="tp-group"><label>TP3</label><input type="number" id="tp3_${p.id}" step="0.00001" placeholder="Prix" onchange="updateTP('${p.id}','tp3',this.value)" /></div>
+        <div class="tp-group">
+          <label>TP1</label>
+          <input type="text" inputmode="decimal" id="tp1_${p.id}" placeholder="1.14500" oninput="updateTP('${p.id}','tp1',this.value)" />
+        </div>
+        <div class="tp-group">
+          <label>TP2 <span style="color:#aaa;font-weight:400;">(optionnel)</span></label>
+          <input type="text" inputmode="decimal" id="tp2_${p.id}" placeholder="1.14700" oninput="updateTP('${p.id}','tp2',this.value)" />
+        </div>
+        <div class="tp-group">
+          <label>TP3 <span style="color:#aaa;font-weight:400;">(optionnel)</span></label>
+          <input type="text" inputmode="decimal" id="tp3_${p.id}" placeholder="1.15000" oninput="updateTP('${p.id}','tp3',this.value)" />
+        </div>
       </div>
+      <div id="mode_${p.id}" style="font-size:11px;color:#3b82f6;margin-top:6px;font-weight:600;"></div>
       <div class="events">
         <div class="event"><span class="ev-dot ${s.beDone?'ev-done':'ev-pending'}"></span>Break-even ${s.beDone?'✓ déclenché':'en attente +1R'}</div>
         <div class="event"><span class="ev-dot ${s.tp1Done?'ev-done':'ev-pending'}"></span>TP1 ${s.tp1Done?'✓ atteint':'en attente'}</div>
-        <div class="event"><span class="ev-dot ${s.tp2Done?'ev-done':'ev-pending'}"></span>TP2 ${s.tp2Done?'✓ atteint':'en attente'}</div>
-        <div class="event"><span class="ev-dot ${s.tp3Done?'ev-done':'ev-pending'}"></span>TP3 ${s.tp3Done?'✓ fermé':'optionnel'}</div>
+        <div class="event"><span class="ev-dot ${s.tp2Done?'ev-done':'ev-pending'}"></span>TP2 ${s.tp2Done?'✓ atteint':s.tp2?'en attente':'non défini'}</div>
+        <div class="event"><span class="ev-dot ${s.tp3Done?'ev-done':'ev-pending'}"></span>TP3 ${s.tp3Done?'✓ fermé':s.tp3?'en attente':'non défini'}</div>
       </div>
     </div>`;
   }).join('');
@@ -238,14 +306,11 @@ function renderPositions(positions) {
     const s = states[p.id];
     if (!s) continue;
     ['tp1','tp2','tp3'].forEach(tp => {
-      const el = document.getElementById(`${tp}_${p.id}`);
-      if (el && s[tp]) el.value = s[tp];
+      const input = document.getElementById(`${tp}_${p.id}`);
+      if (input && s[tp]) input.value = s[tp];
     });
+    renderMode(p.id);
   }
-}
-
-function updateTP(posId, tp, val) {
-  if (states[posId]) states[posId][tp] = parseFloat(val) || 0;
 }
 </script>
 </body>
