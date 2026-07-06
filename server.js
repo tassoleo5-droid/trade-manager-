@@ -58,8 +58,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
   const { login, password, server } = req.body;
   try {
-    const response = await fetch('https://trading-api-v1.agiliumtrade.ai/users/current/accounts', {
-      method: 'POST',
+    const response = await fetch('https://mt-provisioning-api-v1.agiliumtrade.ai/users/current/accounts', {      method: 'POST',
       headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         login, password, server,
