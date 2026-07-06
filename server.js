@@ -14,7 +14,6 @@ const DB_FILE = '/tmp/users.json';
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 function loadDB() {
   try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); }
@@ -81,11 +80,19 @@ app.post('/api/trade', authMiddleware, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
+
+app.use(express.static('public'));
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`TradeFlow running on port ${PORT}`));
