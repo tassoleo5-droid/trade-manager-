@@ -4,59 +4,50 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Database = require('better-sqlite3');
+const fs = require('fs');
 
 const app = express();
-const db = new Database('users.db');
 const META_API = 'https://mt-client-api-v1.london.agiliumtrade.ai';
 const METAAPI_TOKEN = process.env.METAAPI_TOKEN;
 const JWT_SECRET = process.env.JWT_SECRET || 'trademanager_secret_2024';
+const DB_FILE = '/tmp/users.json';
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Init base de données
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    mt5_account_id TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+function loadDB() {
+  try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); }
+  catch(e) { return { users: [] }; }
+}
 
-// Middleware auth
+function saveDB(db) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Non autorisé' });
-  try {
-    req.user = jwt.verify(token, JWT_SECRET);
-    next();
-  } catch(e) {
-    res.status(401).json({ error: 'Token invalide' });
-  }
+  try { req.user = jwt.verify(token, JWT_SECRET); next(); }
+  catch(e) { res.status(401).json({ error: 'Token invalide' }); }
 }
 
-// Inscription
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    const stmt = db.prepare('INSERT INTO users (email, password) VALUES (?, ?)');
-    stmt.run(email, hash);
-    res.json({ success: true });
-  } catch(e) {
-    res.status(400).json({ error: 'Email déjà utilisé' });
-  }
+  const db = loadDB();
+  if (db.users.find(u => u.email === email)) return res.status(400).json({ error: 'Email déjà utilisé' });
+  const hash = await bcrypt.hash(password, 10);
+  const user = { id: Date.now(), email, password: hash, mt5_account_id: null };
+  db.users.push(user);
+  saveDB(db);
+  res.json({ success: true });
 });
 
-// Connexion
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const db = loadDB();
+  const user = db.users.find(u => u.email === email);
   if (!user) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
@@ -64,32 +55,50 @@ app.post('/api/login', async (req, res) => {
   res.json({ token, email: user.email, mt5_account_id: user.mt5_account_id });
 });
 
-// Connecter compte MT5
 app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
-  const { login, password, server, platform } = req.body;
+  const { login, password, server } = req.body;
   try {
     const response = await fetch('https://trading-api-v1.agiliumtrade.ai/users/current/accounts', {
       method: 'POST',
       headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         login, password, server,
-        platform: platform || 'mt5',
+        platform: 'mt5',
         name: `user_${req.user.id}`,
         type: 'cloud',
         region: 'london',
-        reliability: 'high',
-        tags: [`user_${req.user.id}`]
+        reliability: 'high'
       })
     });
     const data = await response.json();
     if (!response.ok) return res.status(400).json({ error: data.message || 'Erreur connexion MT5' });
-    const accountId = data.id;
-    db.prepare('UPDATE users SET mt5_account_id = ? WHERE id = ?').run(accountId, req.user.id);
-    res.json({ success: true, accountId });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
+    const db = loadDB();
+    const user = db.users.find(u => u.id === req.user.id);
+    if (user) { user.mt5_account_id = data.id; saveDB(db); }
+    res.json({ success: true, accountId: data.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Proxy MetaApi
-app.post('/api/trade', authMiddleware, async
+app.post('/api/trade', authMiddleware, async (req, res) => {
+  const db = loadDB();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user?.mt5_account_id) return res.status(400).json({ error: 'Aucun compte MT5 connecté' });
+  const { method, path: apiPath, body } = req.body;
+  try {
+    const response = await fetch(META_API + `/users/current/accounts/${user.mt5_account_id}${apiPath}`, {
+      method: method || 'GET',
+      headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const text = await response.text();
+    const result = text ? JSON.parse(text) : {};
+    res.status(response.status).json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`TradeFlow running on port ${PORT}`));
