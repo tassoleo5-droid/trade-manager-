@@ -56,25 +56,17 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
-  const { login, password, server } = req.body;
+  const { account_id } = req.body;
+  if (!account_id) return res.status(400).json({ error: 'Account ID requis' });
   try {
-    const response = await fetch('https://mt-provisioning-api-v1.agiliumtrade.ai/users/current/accounts', {      method: 'POST',
-      headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        login, password, server,
-        platform: 'mt5',
-        name: `user_${req.user.id}`,
-        type: 'cloud',
-        region: 'london',
-        reliability: 'high'
-      })
+    const response = await fetch(`${META_API}/users/current/accounts/${account_id}/positions`, {
+      headers: { 'auth-token': METAAPI_TOKEN }
     });
-    const data = await response.json();
-    if (!response.ok) return res.status(400).json({ error: data.message || 'Erreur connexion MT5' });
+    if (!response.ok) return res.status(400).json({ error: 'Account ID invalide ou introuvable' });
     const db = loadDB();
     const user = db.users.find(u => u.id === req.user.id);
-    if (user) { user.mt5_account_id = data.id; saveDB(db); }
-    res.json({ success: true, accountId: data.id });
+    if (user) { user.mt5_account_id = account_id; saveDB(db); }
+    res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -84,7 +76,7 @@ app.post('/api/trade', authMiddleware, async (req, res) => {
   if (!user?.mt5_account_id) return res.status(400).json({ error: 'Aucun compte MT5 connecté' });
   const { method, path: apiPath, body } = req.body;
   try {
-    const response = await fetch(META_API + `/users/current/accounts/${user.mt5_account_id}${apiPath}`, {
+    const response = await fetch(`${META_API}/users/current/accounts/${user.mt5_account_id}${apiPath}`, {
       method: method || 'GET',
       headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined
@@ -100,4 +92,4 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`TradeFlow running on port ${PORT}`));
+app.listen(PORT, () => console.log(`TradeFlow running on port ${PORT}`));ok
