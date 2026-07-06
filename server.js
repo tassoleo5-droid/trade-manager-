@@ -81,14 +81,9 @@ app.post('/api/trade', authMiddleware, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'app.html'));
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
-
-app.get('/app.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'app.html'));
-});
-
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
