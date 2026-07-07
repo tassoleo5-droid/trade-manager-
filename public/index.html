@@ -89,6 +89,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .log-line:last-child { border: none; }
 .log-ok { color: #4ade80; }
 .log-warn { color: #fbbf24; }
+.perf-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-top: 1.5rem; }
+.perf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.perf-title-big { font-size: 13px; color: var(--muted); }
+.perf-total { font-size: 28px; font-weight: 700; color: var(--accent2); margin-top: 4px; }
+.perf-metrics { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 1rem; }
+.perf-metric { background: var(--surface2); border-radius: 12px; padding: 12px; }
+.perf-metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.perf-metric-value { font-size: 16px; font-weight: 700; }
+.perf-empty { text-align: center; padding: 1.5rem 1rem; color: var(--muted); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -148,6 +157,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="section-title" style="margin-bottom:0.75rem;">Journal</div>
       <div class="log-inner" id="log-inner"><div class="log-line">En attente...</div></div>
     </div>
+
+    <div class="perf-card">
+      <div class="perf-header">
+        <div>
+          <div class="perf-title-big">Performances totales</div>
+          <div class="perf-total" id="perf-total">+0,00$</div>
+        </div>
+      </div>
+      <div class="perf-metrics">
+        <div class="perf-metric"><div class="perf-metric-label">Trades gérés</div><div class="perf-metric-value" id="perf-trades">0</div></div>
+        <div class="perf-metric"><div class="perf-metric-label">Win rate</div><div class="perf-metric-value" id="perf-winrate">—</div></div>
+        <div class="perf-metric"><div class="perf-metric-label">Meilleur trade</div><div class="perf-metric-value" id="perf-best" style="color:var(--accent2)">+0$</div></div>
+        <div class="perf-metric"><div class="perf-metric-label">Pire trade</div><div class="perf-metric-value" id="perf-worst" style="color:var(--danger)">0$</div></div>
+      </div>
+      <div class="perf-empty" id="perf-empty">Les statistiques apparaîtront ici après vos premiers trades clôturés.</div>
+    </div>
   </div>
 </div>
 
@@ -158,6 +183,8 @@ let interval = null;
 let states = {};
 let logs = [];
 let currentTab = 'login';
+let closedTrades = JSON.parse(localStorage.getItem('tf_closed') || '[]');
+let seenPositions = new Set();
 
 function switchTab(tab) {
   currentTab = tab;
@@ -207,6 +234,7 @@ function showApp() {
     document.getElementById('mt5-connect-card').style.display = 'none';
     document.getElementById('mt5-connected').style.display = 'flex';
     document.getElementById('trading-section').style.display = 'block';
+    renderPerf();
     startPolling();
   }
 }
@@ -235,6 +263,7 @@ async function connectMT5() {
     document.getElementById('mt5-connected').style.display = 'flex';
     document.getElementById('trading-section').style.display = 'block';
     addLog('Compte MT5 connecté', 'ok');
+    renderPerf();
     startPolling();
   } catch(e) { alert('Erreur: ' + e.message); }
 }
@@ -260,12 +289,60 @@ async function poll() {
     const positions = await tradeApi('GET', '/positions');
     setDot('green', 'Connecté');
     document.getElementById('last-update').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR');
-    renderPositions(Array.isArray(positions) ? positions : []);
-    for (const p of (Array.isArray(positions) ? positions : [])) await applyRules(p);
+    const arr = Array.isArray(positions) ? positions : [];
+    detectClosed(arr);
+    renderPositions(arr);
+    for (const p of arr) await applyRules(p);
   } catch(e) {
     setDot('', 'Erreur');
     addLog('Erreur: ' + e.message, 'warn');
   }
+}
+
+function detectClosed(positions) {
+  const currentIds = new Set(positions.map(p => p.id));
+  for (const p of positions) seenPositions.add(p.id);
+  for (const id of Array.from(seenPositions)) {
+    if (!currentIds.has(id) && states[id]) {
+      const s = states[id];
+      closedTrades.push({
+        id, symbol: s.symbol || 'Unknown',
+        profit: s.lastProfit || 0,
+        date: new Date().toISOString()
+      });
+      localStorage.setItem('tf_closed', JSON.stringify(closedTrades));
+      addLog(`Position fermée: ${s.symbol} | ${s.lastProfit >= 0 ? '+' : ''}${s.lastProfit?.toFixed(2)}$`, 'ok');
+      delete states[id];
+      seenPositions.delete(id);
+      renderPerf();
+    }
+  }
+}
+
+function renderPerf() {
+  const el = document.getElementById('perf-empty');
+  if (!closedTrades.length) {
+    el.style.display = 'block';
+    document.getElementById('perf-total').textContent = '+0,00$';
+    document.getElementById('perf-trades').textContent = '0';
+    document.getElementById('perf-winrate').textContent = '—';
+    document.getElementById('perf-best').textContent = '+0$';
+    document.getElementById('perf-worst').textContent = '0$';
+    return;
+  }
+  el.style.display = 'none';
+  const total = closedTrades.reduce((sum, t) => sum + t.profit, 0);
+  const wins = closedTrades.filter(t => t.profit > 0).length;
+  const winRate = ((wins / closedTrades.length) * 100).toFixed(0);
+  const best = Math.max(...closedTrades.map(t => t.profit));
+  const worst = Math.min(...closedTrades.map(t => t.profit));
+  const perfTotal = document.getElementById('perf-total');
+  perfTotal.textContent = (total >= 0 ? '+' : '') + total.toFixed(2) + '$';
+  perfTotal.style.color = total >= 0 ? 'var(--accent2)' : 'var(--danger)';
+  document.getElementById('perf-trades').textContent = closedTrades.length;
+  document.getElementById('perf-winrate').textContent = winRate + '%';
+  document.getElementById('perf-best').textContent = (best >= 0 ? '+' : '') + best.toFixed(2) + '$';
+  document.getElementById('perf-worst').textContent = worst.toFixed(2) + '$';
 }
 
 function setDot(state, text) {
@@ -279,12 +356,15 @@ function initState(p) {
     const r = p.stopLoss ? Math.abs(p.openPrice - p.stopLoss) : 0;
     states[p.id] = {
       entry: p.openPrice, r, initialVolume: p.volume,
+      symbol: p.symbol,
       isBuy: p.type === 'POSITION_TYPE_BUY',
       beDone: false, tp1Done: false, tp2Done: false, tp3Done: false,
-      tp1: 0, tp2: 0, tp3: 0
+      tp1: 0, tp2: 0, tp3: 0,
+      lastProfit: 0
     };
     addLog(`Position détectée: ${p.symbol} | R=${r.toFixed(5)}`, 'ok');
   }
+  states[p.id].lastProfit = p.profit || 0;
 }
 
 function getMode(s) {
