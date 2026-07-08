@@ -28,23 +28,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .auth-tab.active { background: var(--accent); color: white; }
 .field { margin-bottom: 1rem; }
 .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-.field input { width: 100%; height: 48px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0 16px; font-size: 15px; color: var(--text); }
-.field input:focus { outline: none; border-color: var(--accent); }
+.field input, .field select { width: 100%; height: 48px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0 16px; font-size: 15px; color: var(--text); }
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
 .btn-main { width: 100%; height: 52px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; }
 .auth-msg { border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; }
 .auth-msg.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
 .auth-msg.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--accent2); }
 .app { display: none; max-width: 520px; margin: 0 auto; padding: 0 1rem 2rem; }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-.topbar-logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
 .status-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px; font-size: 13px; }
 .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .sdot.green { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
 .sdot.orange { background: var(--warn); animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
-.btn-logout { background: transparent; border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
-.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+.icon-btn { width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--border); border-radius: 50%; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.icon-btn:hover { color: var(--text); border-color: var(--accent); }
 .mt5-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; }
 .mt5-title { font-size: 16px; font-weight: 600; margin-bottom: 0.5rem; }
 .mt5-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.6; }
@@ -55,8 +55,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .connected-badge { display: flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 12px; padding: 12px 16px; font-size: 14px; color: var(--accent2); font-weight: 600; margin-bottom: 1.5rem; }
 .how-to { background: var(--surface2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; font-size: 13px; color: var(--muted); line-height: 1.7; }
 .how-to strong { color: var(--text); }
-
-/* Dashboard header */
 .dash-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
 .dash-hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
 .dash-hero-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
@@ -71,14 +69,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .metric-val { font-size: 17px; font-weight: 700; }
 .metric-val.pos { color: var(--accent2); }
 .metric-val.neg { color: var(--danger); }
-.metric-val.warn { color: var(--warn); }
-
-/* Chart */
-.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; overflow: hidden; }
 .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; }
-.chart-wrap { position: relative; height: 140px; }
+.chart-wrap { position: relative; height: 140px; width: 100%; overflow: hidden; }
+.chart-wrap canvas { width: 100% !important; height: 140px !important; display: block; }
 .chart-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 2rem 0; }
-
 .section-title { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 1rem; display: flex; align-items: center; justify-content: space-between; }
 .position { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
 .pos-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -94,7 +89,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .stat { background: var(--surface2); border-radius: 12px; padding: 10px; }
 .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
 .stat-value { font-size: 13px; font-weight: 600; }
-.tp-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 8px; }
+.tp-row { display: grid; gap: 8px; margin-bottom: 8px; }
 .tp-group label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
 .tp-group input { width: 100%; height: 38px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0 8px; font-size: 13px; color: var(--text); }
 .tp-group input:focus { outline: none; border-color: var(--accent); }
@@ -107,15 +102,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .empty-state { text-align: center; padding: 2rem 1rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
 .empty-icon { font-size: 32px; margin-bottom: 0.75rem; }
 .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
-
-/* Positions table (closed) */
 .trades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .trades-table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px; border-bottom: 1px solid var(--border); }
 .trades-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
 .trades-table tr:last-child td { border: none; }
 .trades-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
-
-/* Journal */
 .log-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; }
 .log-inner { max-height: 180px; overflow-y: auto; }
 .log-line { font-size: 12px; font-family: 'SF Mono', Monaco, monospace; padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; gap: 8px; }
@@ -123,6 +114,38 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .log-time { color: var(--muted); flex-shrink: 0; }
 .log-ok { color: var(--accent2); }
 .log-warn { color: var(--warn); }
+.settings-back { display: flex; align-items: center; gap: 8px; background: transparent; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 1rem; }
+.settings-back:hover { color: var(--text); }
+.settings-title { font-size: 26px; font-weight: 700; margin-bottom: 0.25rem; }
+.settings-sub { font-size: 14px; color: var(--muted); margin-bottom: 2rem; }
+.settings-nav { display: flex; gap: 4px; background: var(--surface2); border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; overflow-x: auto; }
+.settings-nav-btn { padding: 8px 14px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.settings-nav-btn.active { background: var(--accent); color: white; }
+.settings-panel { display: none; }
+.settings-panel.active { display: block; }
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
+.settings-card-title { font-size: 15px; font-weight: 600; margin-bottom: 0.25rem; }
+.settings-card-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.6; }
+.settings-field { margin-bottom: 1rem; }
+.settings-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.settings-field input, .settings-field select { width: 100%; height: 44px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; font-size: 14px; color: var(--text); }
+.settings-field input:focus, .settings-field select:focus { outline: none; border-color: var(--accent); }
+.settings-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.settings-save { background: var(--accent); color: white; border: none; border-radius: 12px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.settings-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.settings-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 12px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.settings-msg { border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; }
+.settings-msg.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+.settings-msg.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--accent2); }
+.slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.slider-row input[type=range] { flex: 1; }
+.slider-value { min-width: 60px; text-align: right; font-weight: 600; color: var(--accent); }
+.tp-config { background: var(--surface2); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+.tp-config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.tp-config-name { font-size: 14px; font-weight: 600; }
+.tp-config-pct { font-size: 13px; color: var(--accent); font-weight: 600; }
+.info-box { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
+.info-box strong { color: var(--text); }
 </style>
 </head>
 <body>
@@ -144,79 +167,164 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 <div class="app" id="app">
   <div class="topbar">
-    <span class="topbar-logo">TradeFlow</span>
+    <span class="topbar-logo" onclick="showDashboard()">TradeFlow</span>
     <div class="topbar-right">
       <div class="status-pill"><span class="sdot" id="sdot"></span><span id="stext">Déconnecté</span></div>
-      <button class="btn-logout" onclick="logout()">Quitter</button>
+      <button class="icon-btn" onclick="showSettings()" title="Réglages">⚙</button>
     </div>
   </div>
 
-  <div id="mt5-section">
-    <div class="mt5-card" id="mt5-connect-card">
-      <div class="mt5-title">Connecter votre compte MT5</div>
-      <div class="mt5-sub">Pour connecter votre compte, récupérez votre Account ID sur <strong>app.metaapi.cloud</strong> dans la section MT Accounts.</div>
-      <div class="how-to">
-        <strong>Comment trouver votre Account ID :</strong><br>
-        1. Connectez-vous sur app.metaapi.cloud<br>
-        2. Cliquez sur <strong>MT Accounts</strong><br>
-        3. Copiez l'ID affiché sous votre compte
-      </div>
-      <div class="mt5-field">
-        <label>Account ID MetaApi</label>
-        <input type="text" id="mt5-account-id" placeholder="33ab2a4a-d0b6-498c-85e3-..." />
-      </div>
-      <button class="btn-connect" onclick="connectMT5()">Connecter</button>
-    </div>
-    <div class="connected-badge" id="mt5-connected" style="display:none">
-      ✓ Compte MT5 connecté et actif
-    </div>
-  </div>
-
-  <div id="trading-section" style="display:none">
-    
-    <!-- Dashboard hero -->
-    <div class="dash-hero">
-      <div class="dash-hero-top">
-        <div>
-          <div class="dash-hero-label">Performance totale</div>
-          <div class="dash-hero-value pos" id="hero-total">+0,00$</div>
+  <div id="dashboard-view">
+    <div id="mt5-section">
+      <div class="mt5-card" id="mt5-connect-card">
+        <div class="mt5-title">Connecter votre compte MT5</div>
+        <div class="mt5-sub">Pour connecter votre compte, récupérez votre Account ID sur <strong>app.metaapi.cloud</strong> dans la section MT Accounts.</div>
+        <div class="how-to">
+          <strong>Comment trouver votre Account ID :</strong><br>
+          1. Connectez-vous sur app.metaapi.cloud<br>
+          2. Cliquez sur <strong>MT Accounts</strong><br>
+          3. Copiez l'ID affiché sous votre compte
         </div>
-        <button class="stop-btn" id="stop-btn" onclick="toggleAlgo()">⏸ Stopper l'algo</button>
+        <div class="mt5-field">
+          <label>Account ID MetaApi</label>
+          <input type="text" id="mt5-account-id" placeholder="33ab2a4a-d0b6-498c-85e3-..." />
+        </div>
+        <button class="btn-connect" onclick="connectMT5()">Connecter</button>
       </div>
-      <div class="metrics-grid">
-        <div class="metric"><div class="metric-lbl">P&L aujourd'hui</div><div class="metric-val pos" id="m-today">+0$</div></div>
-        <div class="metric"><div class="metric-lbl">Win rate</div><div class="metric-val" id="m-winrate">—</div></div>
-        <div class="metric"><div class="metric-lbl">Trades gérés</div><div class="metric-val" id="m-trades">0</div></div>
-        <div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="m-open">0</div></div>
-      </div>
-    </div>
-
-    <!-- Performance chart -->
-    <div class="chart-card">
-      <div class="chart-title">Courbe de performance</div>
-      <div class="chart-wrap">
-        <canvas id="perf-chart" width="480" height="140"></canvas>
-        <div class="chart-empty" id="chart-empty">Aucun trade clôturé pour l'instant</div>
+      <div class="connected-badge" id="mt5-connected" style="display:none">
+        ✓ Compte MT5 connecté et actif
       </div>
     </div>
 
-    <!-- Open positions -->
-    <div class="section-title">
-      Positions ouvertes
-      <span id="last-update" style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;"></span>
-    </div>
-    <div id="positions-list"></div>
+    <div id="trading-section" style="display:none">
+      <div class="dash-hero">
+        <div class="dash-hero-top">
+          <div>
+            <div class="dash-hero-label">Performance totale</div>
+            <div class="dash-hero-value pos" id="hero-total">+0,00$</div>
+          </div>
+          <button class="stop-btn" id="stop-btn" onclick="toggleAlgo()">⏸ Stopper l'algo</button>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric"><div class="metric-lbl">P&L aujourd'hui</div><div class="metric-val pos" id="m-today">+0$</div></div>
+          <div class="metric"><div class="metric-lbl">Win rate</div><div class="metric-val" id="m-winrate">—</div></div>
+          <div class="metric"><div class="metric-lbl">Trades gérés</div><div class="metric-val" id="m-trades">0</div></div>
+          <div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="m-open">0</div></div>
+        </div>
+      </div>
 
-    <!-- Closed trades -->
-    <div class="section-title">Trades clôturés récents</div>
-    <div class="trades-card" id="trades-card">
-      <div class="empty-title" style="text-align:center;color:var(--muted);font-weight:400;font-size:13px;padding:1rem 0;">Aucun trade clôturé pour l'instant</div>
+      <div class="chart-card">
+        <div class="chart-title">Courbe de performance</div>
+        <div class="chart-wrap">
+          <canvas id="perf-chart"></canvas>
+          <div class="chart-empty" id="chart-empty">Aucun trade clôturé pour l'instant</div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        Positions ouvertes
+        <span id="last-update" style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;"></span>
+      </div>
+      <div id="positions-list"></div>
+
+      <div class="section-title">Trades clôturés récents</div>
+      <div class="trades-card" id="trades-card">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0;">Aucun trade clôturé pour l'instant</div>
+      </div>
+
+      <div class="section-title">Journal</div>
+      <div class="log-card">
+        <div class="log-inner" id="log-inner"><div class="log-line"><span class="log-time">--:--:--</span><span>En attente...</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-view" style="display:none">
+    <button class="settings-back" onclick="showDashboard()">← Retour au dashboard</button>
+    <div class="settings-title">Réglages</div>
+    <div class="settings-sub">Configurez votre algorithme et votre compte</div>
+
+    <div class="settings-nav">
+      <button class="settings-nav-btn active" onclick="showPanel(event,'algo')">Algorithme</button>
+      <button class="settings-nav-btn" onclick="showPanel(event,'account')">Compte</button>
+      <button class="settings-nav-btn" onclick="showPanel(event,'security')">Sécurité</button>
+      <button class="settings-nav-btn" onclick="showPanel(event,'mt5')">MT5</button>
     </div>
 
-    <!-- Journal -->
-    <div class="section-title">Journal</div>
-    <div class="log-card">
-      <div class="log-inner" id="log-inner"><div class="log-line"><span class="log-time">--:--:--</span><span>En attente...</span></div></div>
+    <div class="settings-panel active" id="panel-algo">
+      <div class="settings-msg" id="algo-msg"></div>
+      <div class="settings-card">
+        <div class="settings-card-title">Seuil de break-even</div>
+        <div class="settings-card-sub">Le SL est déplacé au prix d'entrée dès que le profit atteint ce multiple de R.</div>
+        <div class="slider-row">
+          <input type="range" id="be-threshold" min="0.5" max="3" step="0.1" value="1" oninput="onBeChange(this.value)" />
+          <div class="slider-value" id="be-threshold-val">1.0R</div>
+        </div>
+        <div class="info-box">Exemple : à <strong>1R</strong>, si vous risquez 50€ sur un trade, le BE se déclenche à +50€ de profit.</div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-card-title">Nombre de Take Profits</div>
+        <div class="settings-card-sub">Combien de niveaux de TP voulez-vous utiliser ? Un seul TP ferme 100% de la position.</div>
+        <div class="settings-field">
+          <select id="tp-count" onchange="onTpCountChange(this.value)">
+            <option value="1">1 TP (ferme 100%)</option>
+            <option value="2">2 TP</option>
+            <option value="3" selected>3 TP</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-card" id="tp-percent-card">
+        <div class="settings-card-title">Pourcentages de fermeture</div>
+        <div class="settings-card-sub">Définissez quelle part du volume est fermée à chaque TP. Le total doit faire 100%.</div>
+        <div id="tp-config-list"></div>
+        <div class="info-box" id="tp-warning" style="border-left-color:var(--warn);color:var(--warn);display:none">Le total doit être égal à 100%.</div>
+      </div>
+
+      <button class="settings-save" onclick="saveAlgoSettings()">Enregistrer les réglages</button>
+    </div>
+
+    <div class="settings-panel" id="panel-account">
+      <div class="settings-msg" id="account-msg"></div>
+      <div class="settings-card">
+        <div class="settings-card-title">Informations personnelles</div>
+        <div class="settings-card-sub">Ces informations apparaîtront sur vos factures et communications.</div>
+        <div class="settings-field-row">
+          <div class="settings-field"><label>Prénom</label><input type="text" id="acc-firstname" placeholder="Léo" /></div>
+          <div class="settings-field"><label>Nom</label><input type="text" id="acc-lastname" placeholder="Dupont" /></div>
+        </div>
+        <div class="settings-field"><label>Email</label><input type="email" id="acc-email" /></div>
+        <div class="settings-field"><label>Téléphone (optionnel)</label><input type="tel" id="acc-phone" placeholder="+33 6 12 34 56 78" /></div>
+        <button class="settings-save" onclick="saveAccount()">Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="settings-panel" id="panel-security">
+      <div class="settings-msg" id="security-msg"></div>
+      <div class="settings-card">
+        <div class="settings-card-title">Changer de mot de passe</div>
+        <div class="settings-card-sub">Utilisez un mot de passe fort d'au moins 8 caractères.</div>
+        <div class="settings-field"><label>Mot de passe actuel</label><input type="password" id="pwd-current" /></div>
+        <div class="settings-field"><label>Nouveau mot de passe</label><input type="password" id="pwd-new" /></div>
+        <div class="settings-field"><label>Confirmer le nouveau mot de passe</label><input type="password" id="pwd-confirm" /></div>
+        <button class="settings-save" onclick="changePassword()">Changer le mot de passe</button>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-title" style="color:var(--danger)">Zone dangereuse</div>
+        <div class="settings-card-sub">Ces actions sont irréversibles.</div>
+        <button class="settings-danger" onclick="logout()">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="settings-panel" id="panel-mt5">
+      <div class="settings-msg" id="mt5-msg"></div>
+      <div class="settings-card">
+        <div class="settings-card-title">Compte MetaTrader 5</div>
+        <div class="settings-card-sub">Changez de compte MT5 connecté ou déconnectez-le.</div>
+        <div class="settings-field"><label>Account ID MetaApi</label><input type="text" id="mt5-current-id" placeholder="33ab2a4a-d0b6-..." /></div>
+        <button class="settings-save" onclick="updateMT5()">Mettre à jour</button>
+      </div>
     </div>
   </div>
 </div>
@@ -232,18 +340,21 @@ let closedTrades = JSON.parse(localStorage.getItem('tf_closed') || '[]');
 let seenPositions = new Set();
 let algoActive = localStorage.getItem('tf_algo_active') !== 'false';
 
+const defaultSettings = {
+  beThreshold: 1.0, tpCount: 3, tpPercents: [50, 25, 25],
+  firstname: '', lastname: '', email: '', phone: ''
+};
+let settings = { ...defaultSettings, ...JSON.parse(localStorage.getItem('tf_settings') || '{}') };
+
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
   document.getElementById('auth-btn').textContent = tab === 'login' ? 'Se connecter' : "S'inscrire";
   hideMsg();
 }
-
 function showMsg(msg, type='error') {
   const el = document.getElementById('auth-msg');
-  el.textContent = msg;
-  el.className = 'auth-msg ' + type;
-  el.style.display = 'block';
+  el.textContent = msg; el.className = 'auth-msg ' + type; el.style.display = 'block';
 }
 function hideMsg() { document.getElementById('auth-msg').style.display = 'none'; }
 
@@ -260,12 +371,13 @@ async function handleAuth() {
     if (!res.ok) return showMsg(data.error || 'Erreur');
     if (currentTab === 'register') {
       showMsg('Compte créé ! Connecte-toi maintenant.', 'success');
-      switchTab('login');
-      return;
+      switchTab('login'); return;
     }
     token = data.token;
     localStorage.setItem('tf_token', token);
     hasMT5 = !!data.mt5_account_id;
+    settings.email = data.email;
+    saveSettingsLocal();
     showApp();
   } catch(e) { showMsg('Erreur serveur'); }
 }
@@ -283,12 +395,143 @@ function showApp() {
   }
 }
 
+function showDashboard() {
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('settings-view').style.display = 'none';
+  setTimeout(renderChart, 50);
+}
+
+function showSettings() {
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('settings-view').style.display = 'block';
+  loadSettingsUI();
+}
+
+function showPanel(evt, name) {
+  document.querySelectorAll('.settings-nav-btn').forEach(b => b.classList.remove('active'));
+  evt.target.classList.add('active');
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function loadSettingsUI() {
+  document.getElementById('be-threshold').value = settings.beThreshold;
+  document.getElementById('be-threshold-val').textContent = settings.beThreshold.toFixed(1) + 'R';
+  document.getElementById('tp-count').value = settings.tpCount;
+  renderTpConfig();
+  document.getElementById('acc-firstname').value = settings.firstname || '';
+  document.getElementById('acc-lastname').value = settings.lastname || '';
+  document.getElementById('acc-email').value = settings.email || '';
+  document.getElementById('acc-phone').value = settings.phone || '';
+}
+
+function onBeChange(val) {
+  settings.beThreshold = parseFloat(val);
+  document.getElementById('be-threshold-val').textContent = settings.beThreshold.toFixed(1) + 'R';
+}
+
+function onTpCountChange(val) {
+  settings.tpCount = parseInt(val);
+  if (settings.tpCount === 1) settings.tpPercents = [100];
+  else if (settings.tpCount === 2) settings.tpPercents = [50, 50];
+  else settings.tpPercents = [50, 25, 25];
+  renderTpConfig();
+}
+
+function renderTpConfig() {
+  const el = document.getElementById('tp-config-list');
+  const card = document.getElementById('tp-percent-card');
+  if (settings.tpCount === 1) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  el.innerHTML = settings.tpPercents.map((pct, i) => `
+    <div class="tp-config">
+      <div class="tp-config-header">
+        <span class="tp-config-name">TP${i+1}</span>
+        <span class="tp-config-pct" id="tp-pct-val-${i}">${pct}%</span>
+      </div>
+      <div class="slider-row">
+        <input type="range" min="0" max="100" step="5" value="${pct}" oninput="onTpPctChange(${i}, this.value)" />
+      </div>
+    </div>
+  `).join('');
+  checkTpTotal();
+}
+
+function onTpPctChange(idx, val) {
+  settings.tpPercents[idx] = parseInt(val);
+  document.getElementById('tp-pct-val-' + idx).textContent = val + '%';
+  checkTpTotal();
+}
+
+function checkTpTotal() {
+  const total = settings.tpPercents.reduce((a,b) => a+b, 0);
+  document.getElementById('tp-warning').style.display = total === 100 ? 'none' : 'block';
+}
+
+function saveAlgoSettings() {
+  const total = settings.tpPercents.reduce((a,b) => a+b, 0);
+  if (settings.tpCount > 1 && total !== 100) {
+    return showSettingsMsg('algo-msg', 'Le total des pourcentages doit être égal à 100%.');
+  }
+  saveSettingsLocal();
+  showSettingsMsg('algo-msg', 'Réglages enregistrés ✓', 'success');
+}
+
+function saveAccount() {
+  settings.firstname = document.getElementById('acc-firstname').value.trim();
+  settings.lastname = document.getElementById('acc-lastname').value.trim();
+  settings.email = document.getElementById('acc-email').value.trim();
+  settings.phone = document.getElementById('acc-phone').value.trim();
+  saveSettingsLocal();
+  showSettingsMsg('account-msg', 'Informations mises à jour ✓', 'success');
+}
+
+function changePassword() {
+  const current = document.getElementById('pwd-current').value;
+  const nw = document.getElementById('pwd-new').value;
+  const confirm = document.getElementById('pwd-confirm').value;
+  if (!current || !nw || !confirm) return showSettingsMsg('security-msg', 'Remplis tous les champs.');
+  if (nw.length < 8) return showSettingsMsg('security-msg', 'Le mot de passe doit contenir au moins 8 caractères.');
+  if (nw !== confirm) return showSettingsMsg('security-msg', 'Les mots de passe ne correspondent pas.');
+  showSettingsMsg('security-msg', 'Fonctionnalité en cours de développement.', 'success');
+  document.getElementById('pwd-current').value = '';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+}
+
+async function updateMT5() {
+  const account_id = document.getElementById('mt5-current-id').value.trim();
+  if (!account_id) return showSettingsMsg('mt5-msg', 'Entre un Account ID.');
+  try {
+    const res = await fetch('/api/connect-mt5', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ account_id })
+    });
+    const data = await res.json();
+    if (!res.ok) return showSettingsMsg('mt5-msg', data.error || 'Erreur');
+    showSettingsMsg('mt5-msg', 'Compte MT5 mis à jour ✓', 'success');
+    states = {}; seenPositions = new Set();
+  } catch(e) { showSettingsMsg('mt5-msg', 'Erreur: ' + e.message); }
+}
+
+function showSettingsMsg(id, msg, type='error') {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = 'settings-msg ' + type; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function saveSettingsLocal() {
+  localStorage.setItem('tf_settings', JSON.stringify(settings));
+}
+
 function logout() {
   localStorage.removeItem('tf_token');
   clearInterval(interval);
   token = ''; hasMT5 = false; states = {};
   document.getElementById('auth-wrap').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+  showDashboard();
 }
 
 function toggleAlgo() {
@@ -300,13 +543,8 @@ function toggleAlgo() {
 
 function updateAlgoBtn() {
   const btn = document.getElementById('stop-btn');
-  if (algoActive) {
-    btn.className = 'stop-btn';
-    btn.innerHTML = '⏸ Stopper l\'algo';
-  } else {
-    btn.className = 'stop-btn paused';
-    btn.innerHTML = '▶ Relancer l\'algo';
-  }
+  if (algoActive) { btn.className = 'stop-btn'; btn.innerHTML = '⏸ Stopper l\'algo'; }
+  else { btn.className = 'stop-btn paused'; btn.innerHTML = '▶ Relancer l\'algo'; }
 }
 
 async function connectMT5() {
@@ -357,10 +595,7 @@ async function poll() {
     renderPositions(arr);
     document.getElementById('m-open').textContent = arr.length;
     if (algoActive) { for (const p of arr) await applyRules(p); }
-  } catch(e) {
-    setDot('', 'Erreur');
-    addLog('Erreur: ' + e.message, 'warn');
-  }
+  } catch(e) { setDot('', 'Erreur'); addLog('Erreur: ' + e.message, 'warn'); }
 }
 
 function detectClosed(positions) {
@@ -370,15 +605,12 @@ function detectClosed(positions) {
     if (!currentIds.has(id) && states[id]) {
       const s = states[id];
       closedTrades.push({
-        id, symbol: s.symbol || 'Unknown',
-        profit: s.lastProfit || 0,
-        isBuy: s.isBuy,
-        date: new Date().toISOString()
+        id, symbol: s.symbol || 'Unknown', profit: s.lastProfit || 0,
+        isBuy: s.isBuy, date: new Date().toISOString()
       });
       localStorage.setItem('tf_closed', JSON.stringify(closedTrades));
       addLog(`Position fermée: ${s.symbol} | ${s.lastProfit >= 0 ? '+' : ''}${s.lastProfit?.toFixed(2)}$`, 'ok');
-      delete states[id];
-      seenPositions.delete(id);
+      delete states[id]; seenPositions.delete(id);
       renderDashboard();
     }
   }
@@ -389,81 +621,75 @@ function renderDashboard() {
   const heroEl = document.getElementById('hero-total');
   heroEl.textContent = (total >= 0 ? '+' : '') + total.toFixed(2) + '$';
   heroEl.className = 'dash-hero-value ' + (total >= 0 ? 'pos' : 'neg');
-  
   const today = new Date().toDateString();
   const todayTrades = closedTrades.filter(t => new Date(t.date).toDateString() === today);
   const todayPL = todayTrades.reduce((s, t) => s + t.profit, 0);
   const todayEl = document.getElementById('m-today');
   todayEl.textContent = (todayPL >= 0 ? '+' : '') + todayPL.toFixed(0) + '$';
   todayEl.className = 'metric-val ' + (todayPL >= 0 ? 'pos' : 'neg');
-  
   document.getElementById('m-trades').textContent = closedTrades.length;
-  
   if (closedTrades.length) {
     const wins = closedTrades.filter(t => t.profit > 0).length;
     document.getElementById('m-winrate').textContent = ((wins / closedTrades.length) * 100).toFixed(0) + '%';
-  } else {
-    document.getElementById('m-winrate').textContent = '—';
-  }
-  
-  renderChart();
-  renderClosedTrades();
+  } else { document.getElementById('m-winrate').textContent = '—'; }
+  renderChart(); renderClosedTrades();
 }
 
 function renderChart() {
   const canvas = document.getElementById('perf-chart');
   const empty = document.getElementById('chart-empty');
-  if (!closedTrades.length) {
-    canvas.style.display = 'none';
-    empty.style.display = 'block';
-    return;
-  }
-  canvas.style.display = 'block';
-  empty.style.display = 'none';
+  if (!canvas) return;
+  if (!closedTrades.length) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+  canvas.style.display = 'block'; empty.style.display = 'none';
+  
+  const wrap = canvas.parentElement;
+  const width = wrap.clientWidth;
+  const height = 140;
+  const dpr = window.devicePixelRatio || 1;
+  
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
   
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = 140 * dpr;
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, rect.width, 140);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
   
   let cum = 0;
   const points = closedTrades.map(t => { cum += t.profit; return cum; });
   points.unshift(0);
   
-  const min = Math.min(...points, 0);
-  const max = Math.max(...points, 0);
+  const min = Math.min(...points, 0), max = Math.max(...points, 0);
   const range = max - min || 1;
   const padding = 10;
-  const w = rect.width - padding * 2;
-  const h = 140 - padding * 2;
+  const w = width - padding * 2;
+  const h = height - padding * 2;
   
   const coords = points.map((v, i) => ({
-    x: padding + (i / (points.length - 1 || 1)) * w,
+    x: padding + (i / Math.max(points.length - 1, 1)) * w,
     y: padding + h - ((v - min) / range) * h
   }));
   
-  // Fill area
   ctx.beginPath();
   ctx.moveTo(coords[0].x, padding + h);
   coords.forEach(c => ctx.lineTo(c.x, c.y));
   ctx.lineTo(coords[coords.length-1].x, padding + h);
   ctx.closePath();
-  const grad = ctx.createLinearGradient(0, 0, 0, 140);
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, 'rgba(74,222,128,0.25)');
   grad.addColorStop(1, 'rgba(74,222,128,0)');
   ctx.fillStyle = grad;
   ctx.fill();
   
-  // Line
   ctx.beginPath();
   coords.forEach((c, i) => i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y));
   ctx.strokeStyle = '#4ade80';
   ctx.lineWidth = 2;
   ctx.stroke();
 }
+
+window.addEventListener('resize', () => { if (closedTrades.length) renderChart(); });
 
 function renderClosedTrades() {
   const card = document.getElementById('trades-card');
@@ -495,22 +721,14 @@ function initState(p) {
   if (!states[p.id]) {
     const r = p.stopLoss ? Math.abs(p.openPrice - p.stopLoss) : 0;
     states[p.id] = {
-      entry: p.openPrice, r, initialVolume: p.volume,
-      symbol: p.symbol,
+      entry: p.openPrice, r, initialVolume: p.volume, symbol: p.symbol,
       isBuy: p.type === 'POSITION_TYPE_BUY',
-      beDone: false, tp1Done: false, tp2Done: false, tp3Done: false,
-      tp1: 0, tp2: 0, tp3: 0, lastProfit: 0
+      beDone: false, tpDone: [false, false, false],
+      tp: [0, 0, 0], lastProfit: 0
     };
     addLog(`Position détectée: ${p.symbol} | R=${r.toFixed(5)}`, 'ok');
   }
   states[p.id].lastProfit = p.profit || 0;
-}
-
-function getMode(s) {
-  if (s.tp1 && s.tp2 && s.tp3) return 'triple';
-  if (s.tp1 && s.tp2) return 'double';
-  if (s.tp1) return 'single';
-  return 'none';
 }
 
 async function applyRules(p) {
@@ -519,10 +737,11 @@ async function applyRules(p) {
   if (!s.r) return;
   const price = p.currentPrice || p.openPrice;
   const profit = s.isBuy ? price - s.entry : s.entry - price;
-  const mode = getMode(s);
-  if (mode === 'none') return;
+  const nbTP = settings.tpCount;
+  const activeTPs = s.tp.slice(0, nbTP).filter(t => t > 0);
+  if (activeTPs.length === 0) return;
 
-  if (!s.beDone && profit >= s.r) {
+  if (!s.beDone && profit >= s.r * settings.beThreshold) {
     try {
       await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
       s.beDone = true;
@@ -530,57 +749,36 @@ async function applyRules(p) {
     } catch(e) { addLog('Erreur BE: ' + e.message, 'warn'); }
   }
 
-  if (s.tp1 && !s.tp1Done && (s.isBuy ? price >= s.tp1 : price <= s.tp1)) {
+  for (let i = 0; i < nbTP; i++) {
+    if (!s.tp[i] || s.tpDone[i]) continue;
+    if (i > 0 && !s.tpDone[i-1]) continue;
+    const hit = s.isBuy ? price >= s.tp[i] : price <= s.tp[i];
+    if (!hit) continue;
     try {
-      if (mode === 'single') {
+      const isLast = i === nbTP - 1;
+      if (isLast || nbTP === 1) {
         await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-        s.tp1Done = true;
-        addLog(`TP1 ${p.symbol} | Fermé 100%`, 'ok');
+        addLog(`TP${i+1} ${p.symbol} | Position fermée`, 'ok');
       } else {
-        const vol = Math.round(s.initialVolume * 0.5 * 100) / 100;
+        const pct = settings.tpPercents[i] / 100;
+        const vol = Math.round(s.initialVolume * pct * 100) / 100;
         if (vol > 0) await tradeApi('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-        const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
-        await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
-        s.tp1Done = true;
-        addLog(`TP1 ${p.symbol} | Fermé 50% | SL → ${newSL.toFixed(5)}`, 'ok');
+        if (i === 0) {
+          const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
+          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
+          addLog(`TP1 ${p.symbol} | Fermé ${settings.tpPercents[i]}% | SL → ${newSL.toFixed(5)}`, 'ok');
+        } else {
+          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+          addLog(`TP${i+1} ${p.symbol} | Fermé ${settings.tpPercents[i]}% | SL → entrée`, 'ok');
+        }
       }
-    } catch(e) { addLog('Erreur TP1: ' + e.message, 'warn'); }
-  }
-
-  if (s.tp2 && !s.tp2Done && s.tp1Done && (s.isBuy ? price >= s.tp2 : price <= s.tp2)) {
-    try {
-      if (mode === 'double') {
-        await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-        s.tp2Done = true;
-        addLog(`TP2 ${p.symbol} | Fermé 100%`, 'ok');
-      } else {
-        const vol = Math.round(p.volume * 0.5 * 100) / 100;
-        if (vol > 0) await tradeApi('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
-        await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
-        s.tp2Done = true;
-        addLog(`TP2 ${p.symbol} | SL → entrée`, 'ok');
-      }
-    } catch(e) { addLog('Erreur TP2: ' + e.message, 'warn'); }
-  }
-
-  if (s.tp3 && !s.tp3Done && s.tp2Done && (s.isBuy ? price >= s.tp3 : price <= s.tp3)) {
-    try {
-      await tradeApi('POST', '/trade', { actionType: 'POSITION_CLOSE', positionId: p.id });
-      s.tp3Done = true;
-      addLog(`TP3 ${p.symbol} | Position fermée`, 'ok');
-    } catch(e) { addLog('Erreur TP3: ' + e.message, 'warn'); }
+      s.tpDone[i] = true;
+    } catch(e) { addLog(`Erreur TP${i+1}: ` + e.message, 'warn'); }
   }
 }
 
-function updateTP(posId, tp, val) {
-  if (states[posId]) { states[posId][tp] = parseFloat(val) || 0; renderMode(posId); }
-}
-
-function renderMode(posId) {
-  const el = document.getElementById('mode_' + posId);
-  if (!el || !states[posId]) return;
-  const labels = { single: 'TP1 seul → ferme 100%', double: 'TP1 + TP2 → 50% puis clôture', triple: 'TP1 + TP2 + TP3 → 50% / 25% / reste', none: '' };
-  el.textContent = labels[getMode(states[posId])] || '';
+function updateTP(posId, idx, val) {
+  if (states[posId]) { states[posId].tp[idx] = parseFloat(val) || 0; }
 }
 
 function renderPositions(positions) {
@@ -591,6 +789,7 @@ function renderPositions(positions) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Aucune position ouverte</div><div style="font-size:13px">Ouvrez un trade sur MT5 pour commencer</div></div>`;
     return;
   }
+  const nbTP = settings.tpCount;
   el.innerHTML = positions.map(p => {
     const s = states[p.id] || {};
     const isBuy = p.type === 'POSITION_TYPE_BUY';
@@ -598,6 +797,16 @@ function renderPositions(positions) {
     const r = s.r || 0;
     const price = p.currentPrice || p.openPrice;
     const profitR = r > 0 ? ((isBuy ? price - s.entry : s.entry - price) / r).toFixed(2) : '—';
+    let tpInputs = '';
+    for (let i = 0; i < nbTP; i++) {
+      tpInputs += `<div class="tp-group"><label>TP${i+1}${i===0?'':' (opt.)'}</label><input type="text" inputmode="decimal" id="tp${i}_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}',${i},this.value)" /></div>`;
+    }
+    let events = `<div class="ev"><span class="ev-dot ${s.beDone?'done':'wait'}"></span>Break-even ${s.beDone?'✓':'en attente'}</div>`;
+    for (let i = 0; i < nbTP; i++) {
+      const done = s.tpDone?.[i];
+      const set = s.tp?.[i];
+      events += `<div class="ev"><span class="ev-dot ${done?'done':'wait'}"></span>TP${i+1} ${done?'✓':set?'en attente':'—'}</div>`;
+    }
     return `
     <div class="position">
       <div class="pos-top">
@@ -612,28 +821,17 @@ function renderPositions(positions) {
         <div class="stat"><div class="stat-label">SL actuel</div><div class="stat-value">${p.stopLoss?.toFixed(5)||'—'}</div></div>
         <div class="stat"><div class="stat-label">Profit R</div><div class="stat-value">${profitR}R</div></div>
       </div>
-      <div class="tp-row">
-        <div class="tp-group"><label>TP1</label><input type="text" inputmode="decimal" id="tp1_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp1',this.value)" /></div>
-        <div class="tp-group"><label>TP2 (opt.)</label><input type="text" inputmode="decimal" id="tp2_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp2',this.value)" /></div>
-        <div class="tp-group"><label>TP3 (opt.)</label><input type="text" inputmode="decimal" id="tp3_${p.id}" placeholder="Prix" oninput="updateTP('${p.id}','tp3',this.value)" /></div>
-      </div>
-      <div class="mode-label" id="mode_${p.id}"></div>
-      <div class="events-row">
-        <div class="ev"><span class="ev-dot ${s.beDone?'done':'wait'}"></span>Break-even ${s.beDone?'✓':'en attente'}</div>
-        <div class="ev"><span class="ev-dot ${s.tp1Done?'done':'wait'}"></span>TP1 ${s.tp1Done?'✓':'en attente'}</div>
-        <div class="ev"><span class="ev-dot ${s.tp2Done?'done':'wait'}"></span>TP2 ${s.tp2Done?'✓':s.tp2?'en attente':'—'}</div>
-        <div class="ev"><span class="ev-dot ${s.tp3Done?'done':'wait'}"></span>TP3 ${s.tp3Done?'✓':s.tp3?'en attente':'—'}</div>
-      </div>
+      <div class="tp-row" style="grid-template-columns:repeat(${nbTP},1fr)">${tpInputs}</div>
+      <div class="events-row">${events}</div>
     </div>`;
   }).join('');
   for (const p of positions) {
     const s = states[p.id];
     if (!s) continue;
-    ['tp1','tp2','tp3'].forEach(tp => {
-      const input = document.getElementById(`${tp}_${p.id}`);
-      if (input && s[tp]) input.value = s[tp];
-    });
-    renderMode(p.id);
+    for (let i = 0; i < nbTP; i++) {
+      const input = document.getElementById(`tp${i}_${p.id}`);
+      if (input && s.tp?.[i]) input.value = s.tp[i];
+    }
   }
 }
 
