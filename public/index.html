@@ -14,6 +14,7 @@
   --accent: #6c63ff;
   --accent2: #4ade80;
   --danger: #f87171;
+  --warn: #f59e0b;
   --text: #f0f0ff;
   --muted: #6b6b8a;
 }
@@ -23,25 +24,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .auth-logo { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 0.25rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .auth-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 2rem; }
 .auth-tabs { display: flex; background: var(--surface2); border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; }
-.auth-tab { flex: 1; height: 36px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.2s; }
+.auth-tab { flex: 1; height: 36px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: transparent; color: var(--muted); }
 .auth-tab.active { background: var(--accent); color: white; }
 .field { margin-bottom: 1rem; }
 .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 .field input { width: 100%; height: 48px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0 16px; font-size: 15px; color: var(--text); }
 .field input:focus { outline: none; border-color: var(--accent); }
-.btn-main { width: 100%; height: 52px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
-.btn-main:active { opacity: 0.8; }
+.btn-main { width: 100%; height: 52px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; }
 .auth-msg { border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; }
 .auth-msg.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
 .auth-msg.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--accent2); }
-.app { display: none; max-width: 500px; margin: 0 auto; padding: 0 1rem 2rem; }
+.app { display: none; max-width: 520px; margin: 0 auto; padding: 0 1rem 2rem; }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
 .topbar-logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .status-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px; font-size: 13px; }
 .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .sdot.green { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
-.sdot.orange { background: #f59e0b; animation: pulse 1s infinite; }
+.sdot.orange { background: var(--warn); animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 .btn-logout { background: transparent; border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
@@ -55,7 +55,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .connected-badge { display: flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 12px; padding: 12px 16px; font-size: 14px; color: var(--accent2); font-weight: 600; margin-bottom: 1.5rem; }
 .how-to { background: var(--surface2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; font-size: 13px; color: var(--muted); line-height: 1.7; }
 .how-to strong { color: var(--text); }
-.section-title { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+
+/* Dashboard header */
+.dash-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
+.dash-hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.dash-hero-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.dash-hero-value { font-size: 32px; font-weight: 700; }
+.dash-hero-value.pos { color: var(--accent2); }
+.dash-hero-value.neg { color: var(--danger); }
+.stop-btn { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: var(--danger); border-radius: 99px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.stop-btn.paused { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.4); color: var(--accent2); }
+.metrics-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+.metric { background: var(--surface2); border-radius: 12px; padding: 12px; }
+.metric-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.metric-val { font-size: 17px; font-weight: 700; }
+.metric-val.pos { color: var(--accent2); }
+.metric-val.neg { color: var(--danger); }
+.metric-val.warn { color: var(--warn); }
+
+/* Chart */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
+.chart-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; }
+.chart-wrap { position: relative; height: 140px; }
+.chart-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 2rem 0; }
+
+.section-title { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 1rem; display: flex; align-items: center; justify-content: space-between; }
 .position { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
 .pos-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .pos-left { display: flex; align-items: center; gap: 10px; }
@@ -80,24 +104,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .ev-dot.done { background: var(--accent2); box-shadow: 0 0 4px var(--accent2); }
 .ev-dot.wait { background: var(--muted); }
-.empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-.empty-icon { font-size: 40px; margin-bottom: 1rem; }
-.empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
-.log-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-top: 1.5rem; }
-.log-inner { max-height: 150px; overflow-y: auto; }
-.log-line { font-size: 12px; font-family: monospace; padding: 3px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+.empty-state { text-align: center; padding: 2rem 1rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+.empty-icon { font-size: 32px; margin-bottom: 0.75rem; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+
+/* Positions table (closed) */
+.trades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trades-table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px; border-bottom: 1px solid var(--border); }
+.trades-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
+.trades-table tr:last-child td { border: none; }
+.trades-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
+
+/* Journal */
+.log-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; }
+.log-inner { max-height: 180px; overflow-y: auto; }
+.log-line { font-size: 12px; font-family: 'SF Mono', Monaco, monospace; padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .log-line:last-child { border: none; }
-.log-ok { color: #4ade80; }
-.log-warn { color: #fbbf24; }
-.perf-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin-top: 1.5rem; }
-.perf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-.perf-title-big { font-size: 13px; color: var(--muted); }
-.perf-total { font-size: 28px; font-weight: 700; color: var(--accent2); margin-top: 4px; }
-.perf-metrics { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 1rem; }
-.perf-metric { background: var(--surface2); border-radius: 12px; padding: 12px; }
-.perf-metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.perf-metric-value { font-size: 16px; font-weight: 700; }
-.perf-empty { text-align: center; padding: 1.5rem 1rem; color: var(--muted); font-size: 13px; }
+.log-time { color: var(--muted); flex-shrink: 0; }
+.log-ok { color: var(--accent2); }
+.log-warn { color: var(--warn); }
 </style>
 </head>
 <body>
@@ -134,7 +159,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <strong>Comment trouver votre Account ID :</strong><br>
         1. Connectez-vous sur app.metaapi.cloud<br>
         2. Cliquez sur <strong>MT Accounts</strong><br>
-        3. Copiez l'ID affiché sous votre compte (ex: 33ab2a4a-d0b6-...)
+        3. Copiez l'ID affiché sous votre compte
       </div>
       <div class="mt5-field">
         <label>Account ID MetaApi</label>
@@ -148,30 +173,50 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div id="trading-section" style="display:none">
-    <div class="section-title">
-      Positions ouvertes
-      <span id="last-update" style="font-size:11px;color:var(--muted);font-weight:400;"></span>
-    </div>
-    <div id="positions-list"></div>
-    <div class="log-card">
-      <div class="section-title" style="margin-bottom:0.75rem;">Journal</div>
-      <div class="log-inner" id="log-inner"><div class="log-line">En attente...</div></div>
+    
+    <!-- Dashboard hero -->
+    <div class="dash-hero">
+      <div class="dash-hero-top">
+        <div>
+          <div class="dash-hero-label">Performance totale</div>
+          <div class="dash-hero-value pos" id="hero-total">+0,00$</div>
+        </div>
+        <button class="stop-btn" id="stop-btn" onclick="toggleAlgo()">⏸ Stopper l'algo</button>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><div class="metric-lbl">P&L aujourd'hui</div><div class="metric-val pos" id="m-today">+0$</div></div>
+        <div class="metric"><div class="metric-lbl">Win rate</div><div class="metric-val" id="m-winrate">—</div></div>
+        <div class="metric"><div class="metric-lbl">Trades gérés</div><div class="metric-val" id="m-trades">0</div></div>
+        <div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="m-open">0</div></div>
+      </div>
     </div>
 
-    <div class="perf-card">
-      <div class="perf-header">
-        <div>
-          <div class="perf-title-big">Performances totales</div>
-          <div class="perf-total" id="perf-total">+0,00$</div>
-        </div>
+    <!-- Performance chart -->
+    <div class="chart-card">
+      <div class="chart-title">Courbe de performance</div>
+      <div class="chart-wrap">
+        <canvas id="perf-chart" width="480" height="140"></canvas>
+        <div class="chart-empty" id="chart-empty">Aucun trade clôturé pour l'instant</div>
       </div>
-      <div class="perf-metrics">
-        <div class="perf-metric"><div class="perf-metric-label">Trades gérés</div><div class="perf-metric-value" id="perf-trades">0</div></div>
-        <div class="perf-metric"><div class="perf-metric-label">Win rate</div><div class="perf-metric-value" id="perf-winrate">—</div></div>
-        <div class="perf-metric"><div class="perf-metric-label">Meilleur trade</div><div class="perf-metric-value" id="perf-best" style="color:var(--accent2)">+0$</div></div>
-        <div class="perf-metric"><div class="perf-metric-label">Pire trade</div><div class="perf-metric-value" id="perf-worst" style="color:var(--danger)">0$</div></div>
-      </div>
-      <div class="perf-empty" id="perf-empty">Les statistiques apparaîtront ici après vos premiers trades clôturés.</div>
+    </div>
+
+    <!-- Open positions -->
+    <div class="section-title">
+      Positions ouvertes
+      <span id="last-update" style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;"></span>
+    </div>
+    <div id="positions-list"></div>
+
+    <!-- Closed trades -->
+    <div class="section-title">Trades clôturés récents</div>
+    <div class="trades-card" id="trades-card">
+      <div class="empty-title" style="text-align:center;color:var(--muted);font-weight:400;font-size:13px;padding:1rem 0;">Aucun trade clôturé pour l'instant</div>
+    </div>
+
+    <!-- Journal -->
+    <div class="section-title">Journal</div>
+    <div class="log-card">
+      <div class="log-inner" id="log-inner"><div class="log-line"><span class="log-time">--:--:--</span><span>En attente...</span></div></div>
     </div>
   </div>
 </div>
@@ -185,6 +230,7 @@ let logs = [];
 let currentTab = 'login';
 let closedTrades = JSON.parse(localStorage.getItem('tf_closed') || '[]');
 let seenPositions = new Set();
+let algoActive = localStorage.getItem('tf_algo_active') !== 'false';
 
 function switchTab(tab) {
   currentTab = tab;
@@ -199,10 +245,7 @@ function showMsg(msg, type='error') {
   el.className = 'auth-msg ' + type;
   el.style.display = 'block';
 }
-
-function hideMsg() {
-  document.getElementById('auth-msg').style.display = 'none';
-}
+function hideMsg() { document.getElementById('auth-msg').style.display = 'none'; }
 
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
@@ -234,7 +277,8 @@ function showApp() {
     document.getElementById('mt5-connect-card').style.display = 'none';
     document.getElementById('mt5-connected').style.display = 'flex';
     document.getElementById('trading-section').style.display = 'block';
-    renderPerf();
+    updateAlgoBtn();
+    renderDashboard();
     startPolling();
   }
 }
@@ -245,6 +289,24 @@ function logout() {
   token = ''; hasMT5 = false; states = {};
   document.getElementById('auth-wrap').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+}
+
+function toggleAlgo() {
+  algoActive = !algoActive;
+  localStorage.setItem('tf_algo_active', algoActive);
+  updateAlgoBtn();
+  addLog(algoActive ? 'Algo réactivé' : 'Algo mis en pause', algoActive ? 'ok' : 'warn');
+}
+
+function updateAlgoBtn() {
+  const btn = document.getElementById('stop-btn');
+  if (algoActive) {
+    btn.className = 'stop-btn';
+    btn.innerHTML = '⏸ Stopper l\'algo';
+  } else {
+    btn.className = 'stop-btn paused';
+    btn.innerHTML = '▶ Relancer l\'algo';
+  }
 }
 
 async function connectMT5() {
@@ -263,7 +325,8 @@ async function connectMT5() {
     document.getElementById('mt5-connected').style.display = 'flex';
     document.getElementById('trading-section').style.display = 'block';
     addLog('Compte MT5 connecté', 'ok');
-    renderPerf();
+    updateAlgoBtn();
+    renderDashboard();
     startPolling();
   } catch(e) { alert('Erreur: ' + e.message); }
 }
@@ -292,7 +355,8 @@ async function poll() {
     const arr = Array.isArray(positions) ? positions : [];
     detectClosed(arr);
     renderPositions(arr);
-    for (const p of arr) await applyRules(p);
+    document.getElementById('m-open').textContent = arr.length;
+    if (algoActive) { for (const p of arr) await applyRules(p); }
   } catch(e) {
     setDot('', 'Erreur');
     addLog('Erreur: ' + e.message, 'warn');
@@ -308,41 +372,117 @@ function detectClosed(positions) {
       closedTrades.push({
         id, symbol: s.symbol || 'Unknown',
         profit: s.lastProfit || 0,
+        isBuy: s.isBuy,
         date: new Date().toISOString()
       });
       localStorage.setItem('tf_closed', JSON.stringify(closedTrades));
       addLog(`Position fermée: ${s.symbol} | ${s.lastProfit >= 0 ? '+' : ''}${s.lastProfit?.toFixed(2)}$`, 'ok');
       delete states[id];
       seenPositions.delete(id);
-      renderPerf();
+      renderDashboard();
     }
   }
 }
 
-function renderPerf() {
-  const el = document.getElementById('perf-empty');
+function renderDashboard() {
+  const total = closedTrades.reduce((sum, t) => sum + t.profit, 0);
+  const heroEl = document.getElementById('hero-total');
+  heroEl.textContent = (total >= 0 ? '+' : '') + total.toFixed(2) + '$';
+  heroEl.className = 'dash-hero-value ' + (total >= 0 ? 'pos' : 'neg');
+  
+  const today = new Date().toDateString();
+  const todayTrades = closedTrades.filter(t => new Date(t.date).toDateString() === today);
+  const todayPL = todayTrades.reduce((s, t) => s + t.profit, 0);
+  const todayEl = document.getElementById('m-today');
+  todayEl.textContent = (todayPL >= 0 ? '+' : '') + todayPL.toFixed(0) + '$';
+  todayEl.className = 'metric-val ' + (todayPL >= 0 ? 'pos' : 'neg');
+  
+  document.getElementById('m-trades').textContent = closedTrades.length;
+  
+  if (closedTrades.length) {
+    const wins = closedTrades.filter(t => t.profit > 0).length;
+    document.getElementById('m-winrate').textContent = ((wins / closedTrades.length) * 100).toFixed(0) + '%';
+  } else {
+    document.getElementById('m-winrate').textContent = '—';
+  }
+  
+  renderChart();
+  renderClosedTrades();
+}
+
+function renderChart() {
+  const canvas = document.getElementById('perf-chart');
+  const empty = document.getElementById('chart-empty');
   if (!closedTrades.length) {
-    el.style.display = 'block';
-    document.getElementById('perf-total').textContent = '+0,00$';
-    document.getElementById('perf-trades').textContent = '0';
-    document.getElementById('perf-winrate').textContent = '—';
-    document.getElementById('perf-best').textContent = '+0$';
-    document.getElementById('perf-worst').textContent = '0$';
+    canvas.style.display = 'none';
+    empty.style.display = 'block';
     return;
   }
-  el.style.display = 'none';
-  const total = closedTrades.reduce((sum, t) => sum + t.profit, 0);
-  const wins = closedTrades.filter(t => t.profit > 0).length;
-  const winRate = ((wins / closedTrades.length) * 100).toFixed(0);
-  const best = Math.max(...closedTrades.map(t => t.profit));
-  const worst = Math.min(...closedTrades.map(t => t.profit));
-  const perfTotal = document.getElementById('perf-total');
-  perfTotal.textContent = (total >= 0 ? '+' : '') + total.toFixed(2) + '$';
-  perfTotal.style.color = total >= 0 ? 'var(--accent2)' : 'var(--danger)';
-  document.getElementById('perf-trades').textContent = closedTrades.length;
-  document.getElementById('perf-winrate').textContent = winRate + '%';
-  document.getElementById('perf-best').textContent = (best >= 0 ? '+' : '') + best.toFixed(2) + '$';
-  document.getElementById('perf-worst').textContent = worst.toFixed(2) + '$';
+  canvas.style.display = 'block';
+  empty.style.display = 'none';
+  
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 140 * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, rect.width, 140);
+  
+  let cum = 0;
+  const points = closedTrades.map(t => { cum += t.profit; return cum; });
+  points.unshift(0);
+  
+  const min = Math.min(...points, 0);
+  const max = Math.max(...points, 0);
+  const range = max - min || 1;
+  const padding = 10;
+  const w = rect.width - padding * 2;
+  const h = 140 - padding * 2;
+  
+  const coords = points.map((v, i) => ({
+    x: padding + (i / (points.length - 1 || 1)) * w,
+    y: padding + h - ((v - min) / range) * h
+  }));
+  
+  // Fill area
+  ctx.beginPath();
+  ctx.moveTo(coords[0].x, padding + h);
+  coords.forEach(c => ctx.lineTo(c.x, c.y));
+  ctx.lineTo(coords[coords.length-1].x, padding + h);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, 140);
+  grad.addColorStop(0, 'rgba(74,222,128,0.25)');
+  grad.addColorStop(1, 'rgba(74,222,128,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  
+  // Line
+  ctx.beginPath();
+  coords.forEach((c, i) => i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y));
+  ctx.strokeStyle = '#4ade80';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function renderClosedTrades() {
+  const card = document.getElementById('trades-card');
+  if (!closedTrades.length) {
+    card.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem 0;">Aucun trade clôturé pour l\'instant</div>';
+    return;
+  }
+  const recent = closedTrades.slice(-8).reverse();
+  card.innerHTML = `<table class="trades-table">
+    <thead><tr><th>Actif</th><th>Sens</th><th>Date</th><th style="text-align:right">P&L</th></tr></thead>
+    <tbody>${recent.map(t => `
+      <tr>
+        <td style="font-weight:600">${t.symbol}</td>
+        <td><span class="badge ${t.isBuy?'buy':'sell'}">${t.isBuy?'BUY':'SELL'}</span></td>
+        <td style="color:var(--muted);font-size:12px">${new Date(t.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit'})}</td>
+        <td style="text-align:right;font-weight:600;color:${t.profit>=0?'var(--accent2)':'var(--danger)'}">${t.profit>=0?'+':''}${t.profit.toFixed(2)}$</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
 }
 
 function setDot(state, text) {
@@ -359,8 +499,7 @@ function initState(p) {
       symbol: p.symbol,
       isBuy: p.type === 'POSITION_TYPE_BUY',
       beDone: false, tp1Done: false, tp2Done: false, tp3Done: false,
-      tp1: 0, tp2: 0, tp3: 0,
-      lastProfit: 0
+      tp1: 0, tp2: 0, tp3: 0, lastProfit: 0
     };
     addLog(`Position détectée: ${p.symbol} | R=${r.toFixed(5)}`, 'ok');
   }
@@ -449,7 +588,7 @@ function renderPositions(positions) {
   if (anyFocused) return;
   const el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Aucune position ouverte</div><div>Ouvrez un trade sur MT5 pour commencer</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Aucune position ouverte</div><div style="font-size:13px">Ouvrez un trade sur MT5 pour commencer</div></div>`;
     return;
   }
   el.innerHTML = positions.map(p => {
@@ -503,7 +642,7 @@ function addLog(msg, type='default') {
   logs.unshift({ t, msg, type });
   if (logs.length > 40) logs.pop();
   document.getElementById('log-inner').innerHTML = logs.map(l =>
-    `<div class="log-line log-${l.type}">[${l.t}] ${l.msg}</div>`).join('');
+    `<div class="log-line log-${l.type}"><span class="log-time">[${l.t}]</span><span>${l.msg}</span></div>`).join('');
 }
 
 if (token) {
