@@ -3,193 +3,442 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeFlow — Gestion automatique des positions MT5</title>
+<title>TradeFlow — Gestion automatique MT5</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#08080f;color:#f0f0ff;line-height:1.6}
-.page{max-width:680px;margin:0 auto;padding:0 1.5rem}
-.nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0;border-bottom:1px solid #1e1e2e}
-.logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,#6c63ff,#4ade80);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.nav-cta{background:#6c63ff;color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer}
-.badge{display:inline-flex;align-items:center;gap:6px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:99px;padding:6px 14px;font-size:13px;color:#a0a0c0;margin-bottom:1.5rem}
-.badge-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80}
-.hero{text-align:center;padding:3rem 0 2rem}
-.hero h1{font-size:38px;font-weight:700;line-height:1.2;margin-bottom:1rem;letter-spacing:-0.5px}
-.hero h1 span{background:linear-gradient(135deg,#6c63ff,#4ade80);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{font-size:16px;color:#8888aa;max-width:480px;margin:0 auto 2rem;line-height:1.7}
-.cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
-.btn-primary{background:#6c63ff;color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer}
-.btn-secondary{background:transparent;color:#f0f0ff;border:1px solid #2a2a4a;border-radius:12px;padding:14px 28px;font-size:15px;cursor:pointer}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:16px;overflow:hidden;margin-bottom:1.5rem}
-.stat{background:#0f0f1a;padding:1.25rem 1rem;text-align:center}
-.stat-val{font-size:22px;font-weight:700;margin-bottom:4px}
-.stat-val.green{color:#4ade80}
-.stat-val.white{color:#f0f0ff}
-.stat-lbl{font-size:11px;color:#666688;text-transform:uppercase;letter-spacing:0.06em}
-.compare-banner{background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:3rem;display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center}
-.compare-side{text-align:center}
-.compare-label{font-size:11px;color:#666688;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem}
-.compare-val{font-size:20px;font-weight:700}
-.compare-sub{font-size:12px;color:#8888aa;margin-top:3px}
-.compare-vs{font-size:13px;color:#444466;font-weight:600;text-align:center}
-.section{padding:2.5rem 0}
-.section-label{font-size:12px;color:#6c63ff;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem}
-.section-title{font-size:24px;font-weight:700;margin-bottom:0.75rem}
-.section-sub{font-size:15px;color:#8888aa;margin-bottom:2rem;line-height:1.7}
-.features{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2.5rem}
-.feature{background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;padding:1.25rem}
-.feature-icon{width:36px;height:36px;border-radius:10px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;font-size:18px}
-.feature h3{font-size:14px;font-weight:600;margin-bottom:6px}
-.feature p{font-size:13px;color:#8888aa;line-height:1.6}
-.dashboard-preview{background:#0f0f1a;border:1px solid #1e1e2e;border-radius:20px;padding:1.5rem;margin-bottom:3rem}
-.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-.dash-title{font-size:13px;color:#8888aa}
-.dash-perf{font-size:28px;font-weight:700;color:#4ade80}
-.stop-btn{background:#1a1a2e;border:1px solid #2a2a4a;color:#f87171;border-radius:99px;padding:6px 14px;font-size:12px;font-weight:600}
-.dash-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem}
-.dash-metric{background:#13131f;border-radius:10px;padding:10px}
-.dash-metric-lbl{font-size:10px;color:#666688;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em}
-.dash-metric-val{font-size:15px;font-weight:600}
-.chart-area{background:#13131f;border-radius:12px;padding:1rem;margin-bottom:1.25rem;height:100px;display:flex;align-items:flex-end;gap:3px}
-.bar{flex:1;background:#6c63ff;border-radius:3px 3px 0 0;opacity:0.7}
-.positions-table{width:100%;font-size:12px;border-collapse:collapse}
-.positions-table th{color:#666688;font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid #1e1e2e}
-.positions-table td{padding:8px;border-bottom:1px solid #1a1a2e}
-.long{color:#4ade80;font-weight:600}
-.short{color:#f87171;font-weight:600}
-.pnl-pos{color:#4ade80}
-.pnl-neg{color:#f87171}
-.steps{display:flex;flex-direction:column}
-.step{display:flex;gap:1rem;padding:1.25rem 0;border-bottom:1px solid #1a1a2e}
-.step:last-child{border:none}
-.step-num{width:32px;height:32px;border-radius:50%;background:#1a1a2e;border:1px solid #6c63ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6c63ff;flex-shrink:0;margin-top:2px}
-.step h3{font-size:15px;font-weight:600;margin-bottom:4px}
-.step p{font-size:13px;color:#8888aa;line-height:1.6}
-.pricing{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:3rem}
-.plan{background:#0f0f1a;border:1px solid #1e1e2e;border-radius:20px;padding:1.5rem}
-.plan.featured{border-color:#6c63ff}
-.plan-badge{background:#6c63ff;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;display:inline-block;margin-bottom:0.75rem}
-.plan-name{font-size:18px;font-weight:700;margin-bottom:4px}
-.plan-price{font-size:32px;font-weight:700;margin-bottom:4px}
-.plan-period{font-size:13px;color:#8888aa;margin-bottom:1.25rem}
-.plan-features{list-style:none;margin-bottom:1.5rem}
-.plan-features li{font-size:13px;color:#8888aa;padding:5px 0;display:flex;align-items:center;gap:8px}
-.plan-features li::before{content:"✓";color:#4ade80;font-weight:700;flex-shrink:0}
-.plan-btn{width:100%;height:44px;border-radius:12px;border:1px solid #2a2a4a;background:transparent;color:#f0f0ff;font-size:14px;font-weight:600;cursor:pointer}
-.plan.featured .plan-btn{background:#6c63ff;border-color:#6c63ff;color:#fff}
-.faq-item{border-bottom:1px solid #1e1e2e;padding:1.25rem 0}
-.faq-q{font-size:15px;font-weight:600;margin-bottom:0.5rem}
-.faq-a{font-size:14px;color:#8888aa;line-height:1.7}
-.final-cta{background:#0f0f1a;border:1px solid #1e1e2e;border-radius:24px;padding:2.5rem;text-align:center;margin-bottom:2rem}
-.final-cta h2{font-size:26px;font-weight:700;margin-bottom:0.75rem}
-.final-cta p{font-size:15px;color:#8888aa;margin-bottom:1.5rem}
-.footer{text-align:center;padding:1.5rem 0;font-size:13px;color:#444466;border-top:1px solid #1a1a2e}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:#000;color:#f5f5f7;line-height:1.5;overflow-x:hidden;cursor:none}
+
+/* Custom cursor */
+.cursor{position:fixed;width:8px;height:8px;background:#4ade80;border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.15s ease,width 0.2s,height 0.2s,background 0.2s;mix-blend-mode:difference;top:0;left:0}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(74,222,128,0.3);border-radius:50%;pointer-events:none;z-index:9998;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),width 0.3s,height 0.3s,border-color 0.3s;top:0;left:0}
+.cursor.hover{width:0;height:0}
+.cursor-ring.hover{width:60px;height:60px;border-color:#4ade80;background:rgba(74,222,128,0.08)}
+@media(max-width:768px){body{cursor:auto}.cursor,.cursor-ring{display:none}}
+
+/* Animated background */
+.bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:0.35}
+.bg-grid{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%)}
+.bg-glow{position:fixed;top:20%;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(74,222,128,0.08) 0%,transparent 60%);z-index:-1;pointer-events:none;animation:glow 8s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:0.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+
+.page{max-width:1100px;margin:0 auto;padding:0 2rem;position:relative;z-index:1}
+
+/* Nav */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 0;position:sticky;top:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:100;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo{font-size:20px;font-weight:600;letter-spacing:-0.02em;color:#f5f5f7}
+.logo span{color:#4ade80}
+.nav-cta{background:#f5f5f7;color:#000;border:none;border-radius:99px;padding:10px 22px;font-size:14px;font-weight:600;cursor:none;transition:transform 0.2s,background 0.2s}
+.nav-cta:hover{transform:scale(1.05);background:#4ade80}
+
+/* Hero */
+.hero{min-height:90vh;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:4rem 0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:99px;padding:8px 18px;font-size:13px;color:#a1a1aa;margin:0 auto 2rem;backdrop-filter:blur(10px);opacity:0;animation:fadeUp 1s 0.2s forwards}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px #4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
+h1.hero-title{font-size:clamp(48px,8vw,96px);font-weight:700;line-height:1;letter-spacing:-0.04em;margin-bottom:1.5rem;opacity:0;animation:fadeUp 1s 0.4s forwards}
+h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
+.hero-sub{font-size:clamp(17px,2vw,22px);color:#a1a1aa;max-width:640px;margin:0 auto 3rem;line-height:1.5;opacity:0;animation:fadeUp 1s 0.6s forwards}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 1s 0.8s forwards}
+.btn-primary{background:#f5f5f7;color:#000;border:none;border-radius:99px;padding:16px 32px;font-size:16px;font-weight:600;cursor:none;transition:all 0.3s;position:relative;overflow:hidden}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(74,222,128,0.3);background:#4ade80}
+.btn-secondary{background:transparent;color:#f5f5f7;border:1px solid rgba(255,255,255,0.15);border-radius:99px;padding:16px 32px;font-size:16px;cursor:none;transition:all 0.3s}
+.btn-secondary:hover{border-color:#4ade80;color:#4ade80}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:4rem;padding:2.5rem 0;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);opacity:0;animation:fadeUp 1s 1s forwards}
+.stat-item{text-align:center;position:relative}
+.stat-item:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,0.06)}
+.stat-num{font-size:clamp(36px,5vw,56px);font-weight:700;letter-spacing:-0.03em;line-height:1}
+.stat-num.green{color:#4ade80}
+.stat-lbl{font-size:13px;color:#71717a;margin-top:8px;letter-spacing:0.02em}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(60px);transition:all 1s cubic-bezier(0.25,0.46,0.45,0.94)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* Sections */
+.section{padding:8rem 0}
+.section-eyebrow{color:#4ade80;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem}
+.section-title{font-size:clamp(36px,5vw,64px);font-weight:700;letter-spacing:-0.03em;line-height:1.05;margin-bottom:1.5rem;max-width:800px}
+.section-title .accent{color:#4ade80}
+.section-sub{font-size:19px;color:#a1a1aa;max-width:640px;line-height:1.5;margin-bottom:4rem}
+
+/* Comparison */
+.compare-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:2rem;align-items:center;padding:4rem 2rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:32px;backdrop-filter:blur(10px);margin-bottom:2rem}
+.compare-col{text-align:center}
+.compare-lbl{font-size:12px;color:#71717a;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem}
+.compare-val{font-size:clamp(64px,10vw,120px);font-weight:700;letter-spacing:-0.04em;line-height:1}
+.compare-val.red{color:#ef4444}
+.compare-val.green{color:#4ade80}
+.compare-desc{font-size:14px;color:#a1a1aa;margin-top:0.5rem}
+.compare-vs{font-size:18px;color:#71717a;font-weight:600;padding:1rem}
+
+/* Features grid */
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+.feature-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:24px;padding:2.5rem;transition:all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);position:relative;overflow:hidden;cursor:none}
+.feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(74,222,128,0.08),transparent 40%);opacity:0;transition:opacity 0.4s}
+.feature-card:hover::before{opacity:1}
+.feature-card:hover{transform:translateY(-4px);border-color:rgba(74,222,128,0.3)}
+.feature-icon{width:48px;height:48px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:1.5rem;position:relative;z-index:1}
+.feature-card h3{font-size:22px;font-weight:600;margin-bottom:0.75rem;letter-spacing:-0.01em;position:relative;z-index:1}
+.feature-card p{font-size:15px;color:#a1a1aa;line-height:1.6;position:relative;z-index:1}
+
+/* Dashboard preview */
+.dashboard-preview{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08);border-radius:32px;padding:2.5rem;position:relative;overflow:hidden}
+.dashboard-preview::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,222,128,0.5),transparent)}
+.dash-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem}
+.dash-perf-lbl{font-size:14px;color:#a1a1aa;margin-bottom:6px}
+.dash-perf-val{font-size:44px;font-weight:700;color:#4ade80;letter-spacing:-0.03em}
+.dash-stop{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;cursor:none}
+.dash-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
+.dash-metric{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:16px}
+.dash-metric-lbl{font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.dash-metric-val{font-size:20px;font-weight:700}
+.chart-mini{background:rgba(0,0,0,0.3);border-radius:16px;padding:1.5rem;height:180px;position:relative;overflow:hidden;margin-bottom:1.5rem}
+.chart-mini svg{width:100%;height:100%}
+
+/* Pricing */
+.pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;max-width:900px;margin:0 auto}
+.plan{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:28px;padding:2.5rem;position:relative;transition:all 0.4s}
+.plan:hover{transform:translateY(-4px);border-color:rgba(74,222,128,0.3)}
+.plan.featured{background:linear-gradient(180deg,rgba(74,222,128,0.06),rgba(74,222,128,0.02));border-color:rgba(74,222,128,0.3)}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;font-size:11px;font-weight:700;padding:6px 16px;border-radius:99px;letter-spacing:0.05em}
+.plan-name{font-size:14px;color:#71717a;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem}
+.plan-price{font-size:56px;font-weight:700;letter-spacing:-0.03em;line-height:1}
+.plan-price span{font-size:18px;color:#71717a;font-weight:400}
+.plan-period{font-size:14px;color:#71717a;margin-top:0.5rem;margin-bottom:2rem}
+.plan-features{list-style:none;margin-bottom:2rem}
+.plan-features li{font-size:15px;color:#d4d4d8;padding:10px 0;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.plan-features li:last-child{border:none}
+.plan-features li::before{content:'✓';color:#4ade80;font-weight:700;font-size:16px}
+.plan-btn{width:100%;height:52px;border-radius:99px;font-size:15px;font-weight:600;cursor:none;transition:all 0.3s}
+.plan .plan-btn{background:transparent;color:#f5f5f7;border:1px solid rgba(255,255,255,0.15)}
+.plan .plan-btn:hover{border-color:#4ade80;color:#4ade80}
+.plan.featured .plan-btn{background:#4ade80;color:#000;border:none}
+.plan.featured .plan-btn:hover{background:#22c55e;transform:scale(1.02)}
+
+/* FAQ */
+.faq{max-width:800px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(255,255,255,0.06);padding:2rem 0;cursor:none}
+.faq-q{font-size:20px;font-weight:600;margin-bottom:0.75rem;letter-spacing:-0.01em;display:flex;justify-content:space-between;align-items:center}
+.faq-plus{color:#4ade80;font-size:24px;font-weight:400;transition:transform 0.3s}
+.faq-item.open .faq-plus{transform:rotate(45deg)}
+.faq-a{font-size:16px;color:#a1a1aa;line-height:1.6;max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.faq-item.open .faq-a{max-height:200px;padding-top:0.5rem}
+
+/* Final CTA */
+.final-cta{text-align:center;padding:8rem 2rem;background:radial-gradient(ellipse at center,rgba(74,222,128,0.08),transparent 70%);border-radius:32px;margin:4rem 0}
+.final-cta h2{font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-0.03em;line-height:1.05;margin-bottom:1.5rem;max-width:700px;margin-left:auto;margin-right:auto}
+.final-cta p{font-size:19px;color:#a1a1aa;margin-bottom:2.5rem;max-width:500px;margin-left:auto;margin-right:auto}
+
+.footer{text-align:center;padding:3rem 0;font-size:13px;color:#52525b;border-top:1px solid rgba(255,255,255,0.06)}
+
+@media(max-width:768px){
+  .features,.pricing{grid-template-columns:1fr}
+  .compare-wrap{grid-template-columns:1fr;gap:1rem;padding:2rem 1rem}
+  .compare-vs{padding:0}
+  .stats-bar{grid-template-columns:1fr;gap:2rem}
+  .stat-item:not(:last-child)::after{display:none}
+  .section{padding:5rem 0}
+}
 </style>
 </head>
 <body>
-<div style="background:#08080f;min-height:100vh">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<canvas class="bg-canvas" id="bg-canvas"></canvas>
+
 <div class="page">
+
 <nav class="nav">
-  <span class="logo">TradeFlow</span>
-  <button class="nav-cta" onclick="window.location.href='/app'">Commencer gratuitement</button>
+  <div class="logo">Trade<span>Flow</span></div>
+  <button class="nav-cta" onclick="goToApp()">Commencer</button>
 </nav>
-<div class="hero">
-  <div class="badge"><span class="badge-dot"></span>Gestion automatique des positions MT5</div>
-  <h1>L'algo gère vos trades.<br><span>Vous gardez le contrôle.</span></h1>
-  <p>Fini les émotions devant le graphique. TradeFlow déplace votre SL, prend vos profits partiels et gère votre break-even automatiquement, 24h/24, même téléphone éteint.</p>
+
+<section class="hero">
+  <div class="eyebrow">
+    <span class="eyebrow-dot"></span>
+    Gestion automatique MT5
+  </div>
+  <h1 class="hero-title">L'algo gère.<br><span class="accent">Vous respirez.</span></h1>
+  <p class="hero-sub">TradeFlow déplace votre SL, prend vos profits partiels et gère votre break-even automatiquement, 24h/24, même téléphone éteint.</p>
   <div class="cta-row">
-    <button class="btn-primary" onclick="window.location.href='/app'">Essai gratuit — commencer maintenant</button>
-    <button class="btn-secondary" onclick="document.getElementById('comment').scrollIntoView({behavior:'smooth'})">Voir comment ça marche</button>
+    <button class="btn-primary" onclick="goToApp()">Essai gratuit</button>
+    <button class="btn-secondary" onclick="scrollTo('#comment')">Voir comment ça marche</button>
   </div>
-  <div class="stats">
-    <div class="stat"><div class="stat-val green">78%</div><div class="stat-lbl">Taux de réussite avec l'algo</div></div>
-    <div class="stat"><div class="stat-val white">+1 800</div><div class="stat-lbl">Trades gérés</div></div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num green" data-count="78">0<span style="font-size:0.6em">%</span></div>
+      <div class="stat-lbl">Taux de réussite avec l'algo</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-count="1800">0</div>
+      <div class="stat-lbl">Trades gérés</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-count="24">0<span style="font-size:0.6em">h/24</span></div>
+      <div class="stat-lbl">Fonctionne en autonomie</div>
+    </div>
   </div>
-  <div class="compare-banner">
-    <div class="compare-side"><div class="compare-label">Trader retail</div><div class="compare-val" style="color:#f87171">43%</div><div class="compare-sub">de positions bien gérées</div></div>
+</section>
+
+<section class="section reveal">
+  <div class="section-eyebrow">La différence</div>
+  <h2 class="section-title">Le retail perd. <span class="accent">L'algo gagne.</span></h2>
+  <p class="section-sub">Les émotions coûtent cher. TradeFlow applique vos règles sans hésitation, sans peur, sans FOMO.</p>
+  <div class="compare-wrap">
+    <div class="compare-col">
+      <div class="compare-lbl">Trader retail</div>
+      <div class="compare-val red">43%</div>
+      <div class="compare-desc">de positions bien gérées</div>
+    </div>
     <div class="compare-vs">VS</div>
-    <div class="compare-side"><div class="compare-label">TradeFlow</div><div class="compare-val" style="color:#4ade80">78%</div><div class="compare-sub">de positions bien gérées</div></div>
+    <div class="compare-col">
+      <div class="compare-lbl">TradeFlow</div>
+      <div class="compare-val green">78%</div>
+      <div class="compare-desc">de positions bien gérées</div>
+    </div>
   </div>
-</div>
-<div class="section">
-  <div class="section-label">Pourquoi TradeFlow</div>
-  <div class="section-title">Tradez sans émotion</div>
-  <div class="section-sub">Chaque règle que vous définissez est appliquée automatiquement, sans hésitation, sans peur de rater un mouvement.</div>
+</section>
+
+<section class="section reveal">
+  <div class="section-eyebrow">Pourquoi TradeFlow</div>
+  <h2 class="section-title">Tradez <span class="accent">sans émotion.</span></h2>
+  <p class="section-sub">Chaque règle que vous définissez est appliquée automatiquement.</p>
   <div class="features">
-    <div class="feature"><div class="feature-icon">🛡</div><h3>Break-even automatique</h3><p>Dès +1R de profit, le SL remonte au prix d'entrée. Votre capital est protégé sans intervention.</p></div>
-    <div class="feature"><div class="feature-icon">📊</div><h3>Prises de profit partielles</h3><p>Fermez 50% au TP1, laissez courir le reste. Chaque palier géré précisément selon vos règles.</p></div>
-    <div class="feature"><div class="feature-icon">📱</div><h3>100% mobile</h3><p>Ouvrez un trade sur MT5, paramétrez vos niveaux sur TradeFlow. L'algo tourne sans votre ordi.</p></div>
-    <div class="feature"><div class="feature-icon">🔒</div><h3>Vos fonds, votre broker</h3><p>TradeFlow n'a jamais accès à votre argent. Il agit uniquement sur vos positions ouvertes.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🛡</div><h3>Break-even automatique</h3><p>Dès +1R de profit, le SL remonte au prix d'entrée. Votre capital est protégé sans intervention.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📊</div><h3>Profits partiels</h3><p>Fermez 50% au TP1, laissez courir le reste. Chaque palier géré précisément selon vos règles.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📱</div><h3>100% mobile</h3><p>Ouvrez un trade sur MT5, paramétrez vos niveaux sur TradeFlow. L'algo tourne sans votre ordi.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🔒</div><h3>Vos fonds, votre broker</h3><p>TradeFlow n'a jamais accès à votre argent. Il agit uniquement sur vos positions ouvertes.</p></div>
   </div>
-</div>
-<div class="section">
-  <div class="section-label">Aperçu</div>
-  <div class="section-title">Le dashboard en temps réel</div>
-  <div class="section-sub">Visualisez l'état de vos positions et le statut de chaque règle automatique d'un coup d'oeil.</div>
+</section>
+
+<section class="section reveal">
+  <div class="section-eyebrow">Aperçu</div>
+  <h2 class="section-title">Le dashboard <span class="accent">en temps réel.</span></h2>
+  <p class="section-sub">Chaque règle. Chaque position. Chaque euro. Suivi en direct.</p>
   <div class="dashboard-preview">
     <div class="dash-header">
-      <div><div class="dash-title">Performance totale</div><div class="dash-perf">+18,4%</div></div>
-      <button class="stop-btn">Stopper l'algo</button>
+      <div>
+        <div class="dash-perf-lbl">Performance totale</div>
+        <div class="dash-perf-val">+18,4%</div>
+      </div>
+      <button class="dash-stop">⏸ Stopper l'algo</button>
     </div>
     <div class="dash-metrics">
       <div class="dash-metric"><div class="dash-metric-lbl">P&L aujourd'hui</div><div class="dash-metric-val" style="color:#4ade80">+142€</div></div>
       <div class="dash-metric"><div class="dash-metric-lbl">Win rate</div><div class="dash-metric-val">63%</div></div>
-      <div class="dash-metric"><div class="dash-metric-lbl">Drawdown max</div><div class="dash-metric-val" style="color:#f87171">-6,2%</div></div>
+      <div class="dash-metric"><div class="dash-metric-lbl">Trades</div><div class="dash-metric-val">1 840</div></div>
     </div>
-    <div class="chart-area">
-      <div class="bar" style="height:40%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:50%"></div><div class="bar" style="height:65%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:80%"></div><div class="bar" style="height:90%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:78%"></div>
+    <div class="chart-mini">
+      <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ade80" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#4ade80" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,100 L40,90 L80,85 L120,70 L160,75 L200,55 L240,60 L280,40 L320,25 L360,30 L400,15 L400,140 L0,140 Z" fill="url(#chartGrad)"/>
+        <path d="M0,100 L40,90 L80,85 L120,70 L160,75 L200,55 L240,60 L280,40 L320,25 L360,30 L400,15" stroke="#4ade80" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
     </div>
-    <table class="positions-table">
-      <thead><tr><th>Actif</th><th>Sens</th><th>Taille</th><th>SL auto</th><th>P&L</th></tr></thead>
-      <tbody>
-        <tr><td>EUR/USD</td><td class="long">Long</td><td>2,0 lots</td><td style="color:#6c63ff">BE actif</td><td class="pnl-pos">+58€</td></tr>
-        <tr><td>GBP/USD</td><td class="short">Short</td><td>0,5 lot</td><td style="color:#4ade80">TP1 ✓</td><td class="pnl-pos">+21€</td></tr>
-        <tr><td>NAS100</td><td class="long">Long</td><td>1 contrat</td><td style="color:#888">En cours</td><td class="pnl-neg">-8€</td></tr>
-      </tbody>
-    </table>
   </div>
-</div>
-<div class="section" id="comment">
-  <div class="section-label">Comment ça marche</div>
-  <div class="section-title">En 3 étapes, c'est actif</div>
-  <div class="steps">
-    <div class="step"><div class="step-num">1</div><div><h3>Créez votre compte</h3><p>Inscription en 30 secondes avec votre email. Aucune carte bancaire requise pour démarrer.</p></div></div>
-    <div class="step"><div class="step-num">2</div><div><h3>Connectez votre MT5</h3><p>Liez votre compte MetaTrader 5 via votre identifiant MetaApi. Connexion sécurisée et chiffrée.</p></div></div>
-    <div class="step"><div class="step-num">3</div><div><h3>Définissez vos niveaux</h3><p>Saisissez vos TP1, TP2, TP3 pour chaque trade. L'algo applique vos règles automatiquement, 24h/24.</p></div></div>
+</section>
+
+<section class="section reveal" id="comment">
+  <div class="section-eyebrow">Comment ça marche</div>
+  <h2 class="section-title">En 3 étapes, <span class="accent">c'est actif.</span></h2>
+  <div class="features" style="margin-top:2rem">
+    <div class="feature-card"><div class="feature-icon">1</div><h3>Créez votre compte</h3><p>Inscription en 30 secondes avec votre email. Aucune carte bancaire requise.</p></div>
+    <div class="feature-card"><div class="feature-icon">2</div><h3>Connectez MT5</h3><p>Liez votre compte MetaTrader 5 via votre identifiant MetaApi. Sécurisé.</p></div>
+    <div class="feature-card"><div class="feature-icon">3</div><h3>Définissez vos règles</h3><p>Break-even, TP1, TP2, TP3. L'algo applique vos règles 24h/24.</p></div>
+    <div class="feature-card"><div class="feature-icon">✓</div><h3>Vous respirez</h3><p>Fermez votre ordi. Vos trades sont gérés automatiquement.</p></div>
   </div>
-</div>
-<div class="section">
-  <div class="section-label">Tarifs</div>
-  <div class="section-title">Simple et transparent</div>
+</section>
+
+<section class="section reveal">
+  <div class="section-eyebrow">Tarifs</div>
+  <h2 class="section-title">Simple. <span class="accent">Transparent.</span></h2>
+  <p class="section-sub">Commencez gratuitement. Passez Pro quand vous êtes prêt.</p>
   <div class="pricing">
     <div class="plan">
-      <div class="plan-name">Starter</div><div class="plan-price">0€</div><div class="plan-period">pour toujours</div>
-      <ul class="plan-features"><li>1 compte MT5</li><li>Break-even auto</li><li>Jusqu'à 2 TP</li><li>Journal des actions</li></ul>
-      <button class="plan-btn" onclick="window.location.href='/app'">Commencer</button>
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">0€</div>
+      <div class="plan-period">Pour toujours</div>
+      <ul class="plan-features">
+        <li>1 compte MT5</li>
+        <li>Break-even automatique</li>
+        <li>Jusqu'à 2 TP</li>
+        <li>Journal des actions</li>
+      </ul>
+      <button class="plan-btn" onclick="goToApp()">Commencer</button>
     </div>
     <div class="plan featured">
       <div class="plan-badge">Plus populaire</div>
-      <div class="plan-name">Pro</div><div class="plan-price">24€</div><div class="plan-period">par mois</div>
-      <ul class="plan-features"><li>Comptes MT5 illimités</li><li>3 TP ou + configurables</li><li>Règles personnalisées</li><li>Alertes mobile</li><li>Support prioritaire</li></ul>
-      <button class="plan-btn" onclick="window.location.href='/app'">Essai 14 jours gratuit</button>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">24€<span>/mois</span></div>
+      <div class="plan-period">Essai 14 jours gratuit</div>
+      <ul class="plan-features">
+        <li>Comptes MT5 illimités</li>
+        <li>3 TP ou + configurables</li>
+        <li>Règles personnalisées</li>
+        <li>Alertes mobile</li>
+        <li>Support prioritaire</li>
+      </ul>
+      <button class="plan-btn" onclick="goToApp()">Essayer Pro</button>
     </div>
   </div>
+</section>
+
+<section class="section reveal">
+  <div class="section-eyebrow">FAQ</div>
+  <h2 class="section-title">Vos questions, <span class="accent">nos réponses.</span></h2>
+  <div class="faq">
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">TradeFlow a-t-il accès à mon argent ? <span class="faq-plus">+</span></div><div class="faq-a">Non. TradeFlow se connecte à votre compte MT5 en lecture et en gestion des positions uniquement. Il ne peut ni retirer ni déposer de fonds. Votre argent reste sur votre broker.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Faut-il garder son ordinateur allumé ? <span class="faq-plus">+</span></div><div class="faq-a">Non. Tout tourne sur nos serveurs cloud 24h/24. Vous pouvez éteindre votre ordinateur, l'algo continue.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Quels brokers sont compatibles ? <span class="faq-plus">+</span></div><div class="faq-a">Tous les brokers qui supportent MetaTrader 5 : ICMarkets, Pepperstone, XM, Admirals, et des centaines d'autres.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Puis-je reprendre la main à tout moment ? <span class="faq-plus">+</span></div><div class="faq-a">Oui, à tout moment. Vous pouvez stopper l'algo, modifier vos niveaux ou intervenir manuellement.</div></div>
+  </div>
+</section>
+
+<section class="final-cta reveal">
+  <h2>Prêt à trader <span style="color:#4ade80">sans émotion ?</span></h2>
+  <p>Rejoignez les traders qui ont automatisé la gestion de leurs positions.</p>
+  <button class="btn-primary" onclick="goToApp()">Créer mon compte gratuitement</button>
+</section>
+
+<div class="footer">TradeFlow — Gestion automatisée MT5 · Les performances passées ne garantissent pas les performances futures.</div>
+
 </div>
-<div class="section">
-  <div class="section-label">Questions fréquentes</div>
-  <div class="section-title">Ce que les traders demandent</div>
-  <div class="faq-item"><div class="faq-q">TradeFlow a-t-il accès à mon argent ?</div><div class="faq-a">Non. TradeFlow se connecte à votre compte MT5 en lecture et en gestion des positions uniquement. Il ne peut ni retirer ni déposer de fonds. Votre argent reste sur votre broker.</div></div>
-  <div class="faq-item"><div class="faq-q">Faut-il garder son ordinateur allumé ?</div><div class="faq-a">Non. Tout tourne sur nos serveurs cloud 24h/24. Vous pouvez éteindre votre ordinateur, l'algo continue de surveiller et gérer vos positions en temps réel.</div></div>
-  <div class="faq-item"><div class="faq-q">Quels brokers sont compatibles ?</div><div class="faq-a">Tous les brokers qui supportent MetaTrader 5. Cela couvre la grande majorité des brokers forex et CFD : ICMarkets, Pepperstone, XM, Admirals, et des centaines d'autres.</div></div>
-  <div class="faq-item"><div class="faq-q">Puis-je reprendre la main à tout moment ?</div><div class="faq-a">Oui, à tout moment. Vous pouvez stopper l'algo, modifier vos niveaux ou intervenir manuellement sur vos trades. TradeFlow ne vous bloque jamais.</div></div>
-</div>
-<div class="final-cta">
-  <h2>Prêt à trader sans émotion ?</h2>
-  <p>Rejoignez les traders qui ont automatisé la gestion de leurs positions. Gratuit pour commencer.</p>
-  <button class="btn-primary" onclick="window.location.href='/app'">Créer mon compte gratuitement</button>
-</div>
-<div class="footer">TradeFlow — Gestion automatisée des positions MT5 · Les performances passées ne garantissent pas les performances futures.</div>
-</div>
-</div>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.transform = `translate(${mx - 4}px, ${my - 4}px)`;
+});
+function animateRing() {
+  rx += (mx - rx) * 0.15;
+  ry += (my - ry) * 0.15;
+  cursorRing.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.querySelectorAll('button, .faq-item, a').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.classList.add('hover'); cursorRing.classList.add('hover'); });
+  el.addEventListener('mouseleave', () => { cursor.classList.remove('hover'); cursorRing.classList.remove('hover'); });
+});
+
+// Animated background chart
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const points = [];
+const POINT_COUNT = 60;
+let time = 0;
+for (let i = 0; i < POINT_COUNT; i++) points.push({ x: i, y: 0.5 + Math.random() * 0.1, vy: 0 });
+
+function drawBg() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  time += 0.005;
+  const w = canvas.width, h = canvas.height;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    p.y += (0.5 + Math.sin(time + i * 0.3) * 0.15 + Math.sin(time * 2 + i * 0.1) * 0.05 - p.y) * 0.05;
+  }
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const x = (i / (points.length - 1)) * w;
+    const y = p.y * h;
+    if (i === 0) ctx.moveTo(x, y);
+    else {
+      const px = ((i - 1) / (points.length - 1)) * w;
+      const py = points[i - 1].y * h;
+      const cx = (px + x) / 2;
+      ctx.quadraticCurveTo(px, py, cx, (py + y) / 2);
+    }
+  });
+  const gradient = ctx.createLinearGradient(0, 0, w, 0);
+  gradient.addColorStop(0, 'rgba(74,222,128,0.4)');
+  gradient.addColorStop(0.5, 'rgba(74,222,128,0.8)');
+  gradient.addColorStop(1, 'rgba(74,222,128,0.4)');
+  ctx.strokeStyle = gradient;
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#4ade80';
+  ctx.shadowBlur = 15;
+  ctx.stroke();
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Counter animation
+const counterObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      const suffix = el.querySelector('span')?.outerHTML || '';
+      const duration = 2000;
+      const start = performance.now();
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = Math.floor(target * eased);
+        el.innerHTML = val.toLocaleString('fr-FR') + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+// Feature card glow effect
+function moveGlow(e, el) {
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+  el.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+}
+
+// FAQ
+function toggleFAQ(el) { el.classList.toggle('open'); }
+
+// Nav
+function goToApp() {
+  document.body.style.transition = 'opacity 0.4s';
+  document.body.style.opacity = '0';
+  setTimeout(() => { window.location.href = '/app'; }, 400);
+}
+function scrollTo(id) {
+  document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
+}
+
+// Fade in on load
+document.body.style.opacity = '0';
+window.addEventListener('load', () => {
+  document.body.style.transition = 'opacity 0.6s';
+  document.body.style.opacity = '1';
+});
+</script>
 </body>
 </html>
