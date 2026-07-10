@@ -825,23 +825,35 @@ function initState(p) {
   states[p.id].lastProfit = p.profit || 0;
 }
 
-async function applyRules(p) {
+  async function applyRules(p) {
   initState(p);
   const s = states[p.id];
   if (!s.r) return;
   const price = p.currentPrice || p.openPrice;
   const profit = s.isBuy ? price - s.entry : s.entry - price;
   const nbTP = settings.tpCount;
-  const activeTPs = s.tp.slice(0, nbTP).filter(t => t > 0);
-  if (activeTPs.length === 0) return;
 
+  // ✅ FIX BUG BE : le break-even se déclenche indépendamment des TP
   if (!s.beDone && profit >= s.r * settings.beThreshold) {
     try {
-      await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+      // On envoie SEULEMENT le SL modifié, sans toucher au TP (évite HTTP 400)
+      const modifyBody = { 
+        actionType: 'POSITION_MODIFY', 
+        positionId: p.id, 
+        stopLoss: s.entry 
+      };
+      if (p.takeProfit) modifyBody.takeProfit = p.takeProfit;
+      await tradeApi('POST', '/trade', modifyBody);
       s.beDone = true;
       addLog(`BE déclenché ${p.symbol} | SL → ${s.entry.toFixed(5)}`, 'ok');
-    } catch(e) { addLog('Erreur BE: ' + e.message, 'warn'); }
+    } catch(e) { 
+      addLog('Erreur BE: ' + e.message, 'warn'); 
+    }
   }
+
+  // Vérification des TP (seulement s'ils sont configurés)
+  const activeTPs = s.tp.slice(0, nbTP).filter(t => t > 0);
+  if (activeTPs.length === 0) return;
 
   for (let i = 0; i < nbTP; i++) {
     if (!s.tp[i] || s.tpDone[i]) continue;
@@ -857,12 +869,13 @@ async function applyRules(p) {
         const pct = settings.tpPercents[i] / 100;
         const vol = Math.round(s.initialVolume * pct * 100) / 100;
         if (vol > 0) await tradeApi('POST', '/trade', { actionType: 'POSITION_PARTIAL_CLOSE', positionId: p.id, volume: vol });
+        // Modification du SL après TP (envoyée séparément pour éviter erreur 400)
         if (i === 0) {
           const newSL = s.isBuy ? s.entry - s.r * 0.5 : s.entry + s.r * 0.5;
-          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL, takeProfit: p.takeProfit });
+          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: newSL });
           addLog(`TP1 ${p.symbol} | Fermé ${settings.tpPercents[i]}% | SL → ${newSL.toFixed(5)}`, 'ok');
         } else {
-          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry, takeProfit: p.takeProfit });
+          await tradeApi('POST', '/trade', { actionType: 'POSITION_MODIFY', positionId: p.id, stopLoss: s.entry });
           addLog(`TP${i+1} ${p.symbol} | Fermé ${settings.tpPercents[i]}% | SL → entrée`, 'ok');
         }
       }
