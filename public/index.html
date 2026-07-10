@@ -836,21 +836,26 @@ function initState(p) {
   // ✅ FIX BUG BE : le break-even se déclenche indépendamment des TP
   if (!s.beDone && profit >= s.r * settings.beThreshold) {
     try {
-      // On envoie SEULEMENT le SL modifié, sans toucher au TP (évite HTTP 400)
       const modifyBody = { 
         actionType: 'POSITION_MODIFY', 
         positionId: p.id, 
         stopLoss: s.entry 
       };
       if (p.takeProfit) modifyBody.takeProfit = p.takeProfit;
-      await tradeApi('POST', '/trade', modifyBody);
-      s.beDone = true;
-      addLog(`BE déclenché ${p.symbol} | SL → ${s.entry.toFixed(5)}`, 'ok');
+      const result = await tradeApi('POST', '/trade', modifyBody);
+      
+      // Vérifier que MetaApi a bien accepté la modification
+      if (result && (result.numericCode === 10009 || result.stringCode === 'TRADE_RETCODE_DONE' || result.orderId)) {
+        s.beDone = true;
+        addLog(`BE déclenché ${p.symbol} | SL → ${s.entry.toFixed(5)}`, 'ok');
+      } else {
+        // La requête a été envoyée mais rejetée par le broker
+        addLog(`BE REJETÉ ${p.symbol} | ${JSON.stringify(result).slice(0,80)}`, 'warn');
+      }
     } catch(e) { 
       addLog('Erreur BE: ' + e.message, 'warn'); 
     }
   }
-
   // Vérification des TP (seulement s'ils sont configurés)
   const activeTPs = s.tp.slice(0, nbTP).filter(t => t > 0);
   if (activeTPs.length === 0) return;
