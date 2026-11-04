@@ -19,7 +19,8 @@ class TestAccountConfig(unittest.TestCase):
     def test_diagnostic_is_read_only_and_closes_terminal(self):
         mt5 = Mock()
         mt5.initialize.return_value = True
-        mt5.account_info.return_value = SimpleNamespace(login=123456, server="Demo-01", currency="USD")
+        mt5.ACCOUNT_TRADE_MODE_DEMO = 0
+        mt5.account_info.return_value = SimpleNamespace(login=123456, server="Demo-01", currency="USD", trade_mode=0)
         mt5.positions_get.return_value = [object()]
         result = inspect_connection(AccountConfig(123456, "Demo-01", "secret"), mt5)
         self.assertEqual(result["positions_count"], 1)
@@ -31,7 +32,8 @@ class TestAccountConfig(unittest.TestCase):
     def test_wrong_account_rejected(self):
         mt5 = Mock()
         mt5.initialize.return_value = True
-        mt5.account_info.return_value = SimpleNamespace(login=999, server="Demo-01", currency="USD")
+        mt5.ACCOUNT_TRADE_MODE_DEMO = 0
+        mt5.account_info.return_value = SimpleNamespace(login=999, server="Demo-01", currency="USD", trade_mode=0)
         with self.assertRaises(RuntimeError):
             inspect_connection(AccountConfig(123456, "Demo-01", "secret"), mt5)
         mt5.shutdown.assert_called_once()
