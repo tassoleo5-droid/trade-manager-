@@ -70,8 +70,15 @@ def plan_take_profit(
             else targets[i] >= targets[i - 1]) for i in range(1, len(targets))):
         return None
 
+    # A confirmed history must be a contiguous prefix; otherwise stop safely.
+    keys = [f"{position.account_id}:{position.ticket}:TP{i+1}"
+            for i in range(len(stages))]
+    for i in range(1, len(keys)):
+        if keys[i] in completed and keys[i - 1] not in completed:
+            return None
+
     for i, stage in enumerate(stages):
-        key = f"{position.account_id}:{position.ticket}:TP{i+1}"
+        key = keys[i]
         if key in completed:
             continue
         if key in pending:
