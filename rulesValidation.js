@@ -4,12 +4,13 @@ const DEFAULT_RULES = Object.freeze({
   enabled: false,
   beThreshold: 1,
   tpCount: 3,
-  tpPercents: [50,25,25]
+  tpPercents: [50,25,25],
+  tpTargetsR: [1,2,3]
 });
 
 function validateRules(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return {error:'Paramètres invalides'};
-  if (Object.keys(input).some(k=>!['enabled','beThreshold','tpCount','tpPercents'].includes(k)))
+  if (Object.keys(input).some(k=>!['enabled','beThreshold','tpCount','tpPercents','tpTargetsR'].includes(k)))
     return {error:'Paramètre inconnu'};
   if (typeof input.enabled !== 'boolean') return {error:'enabled invalide'};
   // Safety: enabling an engine requires a separate verified worker and explicit activation protocol.
@@ -22,6 +23,12 @@ function validateRules(input) {
     return {error:'Pourcentages TP invalides'};
   if (input.tpPercents.reduce((a,b)=>a+b,0)!==100)
     return {error:'Les TP doivent totaliser 100%'};
-  return {rules:{enabled:false,beThreshold:input.beThreshold,tpCount:input.tpCount,tpPercents:[...input.tpPercents]}};
+  const targets=input.tpTargetsR===undefined ? Array.from({length:input.tpCount},(_,i)=>i+1) : input.tpTargetsR;
+  if (!Array.isArray(targets)||targets.length!==input.tpCount||
+      targets.some(x=>typeof x!=='number'||!Number.isFinite(x)||x<0.1||x>30)||
+      targets.some((x,i)=>i>0&&x<=targets[i-1]))
+    return {error:'Les cibles TP doivent être strictement croissantes (0,1R à 30R)'};
+  return {rules:{enabled:false,beThreshold:input.beThreshold,tpCount:input.tpCount,
+    tpPercents:[...input.tpPercents],tpTargetsR:[...targets]}};
 }
 module.exports={DEFAULT_RULES,validateRules};
