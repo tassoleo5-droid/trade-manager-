@@ -17,6 +17,7 @@ if (!METAAPI_TOKEN) {
   throw new Error('METAAPI_TOKEN is required until the MT5 bridge migration is complete');
 }
 const { validateTradeRequest } = require('./tradeValidation');
+const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -37,6 +38,13 @@ async function initDB() {
         lastname VARCHAR(100),
         phone VARCHAR(50),
         created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_rules (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        rules JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
     console.log('Database initialized ✓');
@@ -102,6 +110,41 @@ app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
     console.error('Connect MT5 error:', e.message);
     res.status(500).json({ error: 'Erreur serveur' });
   }
+});
+
+// Persistent strategy preferences. Safe until the MT5 execution worker is verified.
+app.get('/api/rules', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT rules FROM user_rules WHERE user_id=$1', [req.user.id]);
+    res.set('Cache-Control', 'no-store');
+    res.json({ rules: result.rows[0]?.rules || DEFAULT_RULES, engine: 'not_configured' });
+  } catch (e) {
+    console.error('Rule read failed');
+    res.status(500).json({error:'Erreur serveur'});
+  }
+});
+
+app.put('/api/rules', authMiddleware, async (req, res) => {
+  const validation = validateRules(req.body);
+  if (validation.error) return res.status(400).json({error:validation.error});
+  try {
+    await pool.query(
+      `INSERT INTO user_rules (user_id,rules) VALUES ($1,$2::jsonb)
+       ON CONFLICT (user_id) DO UPDATE SET rules=EXCLUDED.rules,updated_at=NOW()`,
+      [req.user.id, JSON.stringify(validation.rules)]
+    );
+    res.set('Cache-Control', 'no-store');
+    res.json({rules:validation.rules,engine:'not_configured'});
+  } catch(e) {
+    console.error('Rule save failed');
+    res.status(500).json({error:'Erreur serveur'});
+  }
+});
+
+app.get('/api/engine/status', authMiddleware, (req,res) => {
+  res.set('Cache-Control','no-store');
+  res.json({status:'not_configured',liveTradingEnabled:false,
+    message:'Le moteur MT5 direct nécessite un worker Windows vérifié.'});
 });
 
 app.post('/api/trade', authMiddleware, async (req, res) => {
