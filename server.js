@@ -1,22 +1,14 @@
 const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 
 const app = express();
-const META_API = 'https://mt-client-api-v1.london.agiliumtrade.ai';
-const METAAPI_TOKEN = process.env.METAAPI_TOKEN;
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be set to a strong secret of at least 32 characters');
 }
-if (!METAAPI_TOKEN) {
-  throw new Error('METAAPI_TOKEN is required until the MT5 bridge migration is complete');
-}
-const { validateTradeRequest } = require('./tradeValidation');
 const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
 const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
 
@@ -95,23 +87,16 @@ app.post('/api/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, email: user.email, mt5_account_id: user.mt5_account_id });
+    res.json({ token, email: user.email, mt5_account_id: null });
   } catch(e) {
     console.error('Login error:', e.message);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-app.post('/api/connect-mt5', authMiddleware, async (req, res) => {
-  const { account_id } = req.body;
-  if (!account_id) return res.status(400).json({ error: 'Account ID requis' });
-  try {
-    await pool.query('UPDATE users SET mt5_account_id = $1 WHERE id = $2', [account_id, req.user.id]);
-    res.json({ success: true });
-  } catch(e) {
-    console.error('Connect MT5 error:', e.message);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
+// Legacy MetaApi registration disabled in the new demo-only branch.
+app.post('/api/connect-mt5', authMiddleware, (_req,res) => {
+  res.status(410).json({error:'Connexion MetaApi remplacée par /accounts'});
 });
 
 // Persistent strategy preferences. Safe until the MT5 execution worker is verified.
@@ -152,22 +137,13 @@ app.get('/api/engine/status', authMiddleware, (req,res) => {
 // Demo onboarding is completely separate from the legacy MetaApi proxy.
 registerDemoAccountsApi(app, pool, authMiddleware);
 
-app.post('/api/trade', authMiddleware, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT mt5_account_id FROM users WHERE id = $1', [req.user.id]);
-    const user = result.rows[0];
-    if (!user?.mt5_account_id) return res.status(400).json({ error: 'Aucun compte MT5 connecté' });
-    const operation = validateTradeRequest(req.body);
-    if (operation.error) return res.status(400).json({ error: operation.error });
-    const response = await fetch(`${META_API}/users/current/accounts/${encodeURIComponent(user.mt5_account_id)}${operation.path}`, {
-      method: operation.method,
-      headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
-      body: operation.body ? JSON.stringify(operation.body) : undefined
-    });
-    const text = await response.text();
-    const result2 = text ? JSON.parse(text) : {};
-    res.status(response.status).json(result2);
-  } catch(e) { res.status(500).json({ error: e.message }); }
+// Fail closed: no broker orders while the new Windows worker is being verified.
+app.post('/api/trade', authMiddleware, (_req,res) => {
+  res.status(503).json({error:'Automatisation désactivée pendant les tests démo'});
+});
+
+app.get('/accounts', (_req,res) => {
+  res.sendFile(path.join(__dirname,'public','accounts.html'));
 });
 
 app.get('/', (req, res) => {
