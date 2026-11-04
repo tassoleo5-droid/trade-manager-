@@ -2,7 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from agent import validate_agent_config, verify_job
+from agent import validate_agent_config, verify_job, NoRedirect
 
 
 class AgentTests(unittest.TestCase):
@@ -12,6 +12,9 @@ class AgentTests(unittest.TestCase):
                         "https://myflowfx.example/something", "https://myflowfx.example?x=y"):
             with self.assertRaises(ValueError):
                 validate_agent_config(address, "x" * 40, "worker-1")
+
+    def test_worker_does_not_follow_redirects(self):
+        self.assertIsNone(NoRedirect().redirect_request(None, None, 302, 'redirect', {}, 'https://elsewhere.example/'))
 
     def terminal(self, trade_mode):
         terminal = Mock()
