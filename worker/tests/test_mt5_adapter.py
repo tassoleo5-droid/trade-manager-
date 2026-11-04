@@ -25,7 +25,7 @@ class TestAccountConfig(unittest.TestCase):
         self.assertEqual(result["positions_count"], 1)
         self.assertFalse(result["trading_actions_enabled"])
         mt5.shutdown.assert_called_once()
-        self.assertFalse(hasattr(mt5, "order_send_called"))
+        mt5.order_send.assert_not_called()
         mt5.initialize.assert_called_once_with(login=123456, password="secret", server="Demo-01", timeout=30000)
 
     def test_wrong_account_rejected(self):
