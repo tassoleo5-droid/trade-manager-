@@ -11,7 +11,7 @@ function validateDemoAccount(body) {
   }
   const {login,server,password,label = '',confirmDemoOnly} = body;
   if (confirmDemoOnly !== true) return {error:'Confirmez que ce compte est un compte DEMO'};
-  if (typeof login !== 'string' || !ID_RE.test(login) || BigInt(login) === 0n)
+  if (typeof login !== 'string' || !ID_RE.test(login) || (BigInt(login) === 0n || BigInt(login) > 9223372036854775807n))
     return {error:'Numéro de compte MT5 invalide'};
   if (typeof server !== 'string' || !SERVER_RE.test(server))
     return {error:'Serveur MT5 invalide'};
@@ -20,7 +20,7 @@ function validateDemoAccount(body) {
     return {error:'Mot de passe MT5 invalide'};
   if (typeof label !== 'string' || label.length > 80 || /[\u0000-\u001f]/.test(label))
     return {error:'Nom du compte invalide'};
-  return {account:{login,server:server.trim(),password,label:label.trim()}};
+  return {account:{login:BigInt(login).toString(),server:server.trim(),password,label:label.trim()}};
 }
 
 function validUuid(value) {
