@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Comptes démo · MyFlowFX</title>
+<style>
+:root{color-scheme:dark;--bg:#090b0d;--card:#13171a;--line:#28312e;--text:#f1f5f4;--muted:#9ba9a4;--green:#4ade80}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+main{max-width:950px;margin:0 auto;padding:24px 18px 72px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:42px}
+.brand{font-weight:800;font-size:23px;letter-spacing:-.05em;text-decoration:none;color:var(--text)}.brand b{color:var(--green)}
+nav a{color:var(--muted);text-decoration:none;font-size:14px}nav a:hover{color:var(--green)}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.12;letter-spacing:-.035em;margin:0 0 12px}p{color:var(--muted);margin:0 0 22px}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}
+.card h2{font-size:18px;margin:0 0 8px}label{display:block;font-size:13px;color:var(--muted);font-weight:600;margin:18px 0 8px}
+input:not([type=checkbox]){width:100%;background:#0b0f10;border:1px solid #36433d;border-radius:12px;padding:14px 16px;color:var(--text);font-size:15px}
+input:focus{outline:2px solid #4ade8060;outline-offset:1px}
+.agree{display:flex;gap:12px;align-items:flex-start;margin:20px 0;color:var(--text);font-size:13px}.agree input{margin:4px 0 0;accent-color:var(--green)}
+button{border:0;border-radius:12px;padding:14px 18px;background:var(--green);color:#06110b;font-size:14px;font-weight:750;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;color:#ef9999;border:1px solid #5d3434;padding:9px 12px}
+.small{font-size:13px;color:var(--muted)}.note{border-left:3px solid var(--green);padding:10px 14px;background:#17302455;color:#d0e6d8;font-size:13px;border-radius:5px}
+.status{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:750;background:#263029;color:#b2d9bb}
+.status.pending{background:#443618;color:#fbd28a}.status.rejected_live,.status.failed{background:#4b2929;color:#f4b6b6}
+.account{padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.account:last-child{border-bottom:0}
+.account-info{min-width:0}.account-name{font-size:16px;font-weight:700;overflow-wrap:anywhere}.account-sub{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+#message{min-height:24px;font-size:13px;margin:12px 0;color:#f6d58d}#message.success{color:var(--green)}
+.skeleton{padding:25px 0;color:var(--muted)}
+@media(max-width:730px){.grid{grid-template-columns:1fr}.card{padding:22px}main{padding:18px 14px}}
+</style></head>
+<body><main>
+<header><a class="brand" href="/">MyFlow<b>FX</b></a><nav><a href="/app">← Tableau de bord</a></nav></header>
+<h1>Mes comptes MT5</h1>
+<p>Connecte ton compte démo depuis MyFlowFX. Aucun VPS ni logiciel supplémentaire n'est nécessaire sur ton ordinateur : nos futurs serveurs se chargeront de la connexion.</p>
+<div class="grid">
+<section class="card">
+<h2>Ajouter un compte démo</h2>
+<p class="small">Étape 1 : sauvegarde chiffrée. Étape 2 : vérification sur le serveur Windows lorsqu'il sera disponible. Les ordres automatiques restent désactivés.</p>
+<form id="connect-form" autocomplete="off">
+<label for="login">Identifiant du compte MT5</label>
+<input id="login" name="login" inputmode="numeric" pattern="[0-9]+" placeholder="Ex. 12345678" required maxlength="20">
+<label for="server">Serveur du broker</label>
+<input id="server" name="server" placeholder="Ex. Broker-Demo" required maxlength="128">
+<label for="password">Mot de passe de trading (compte démo uniquement)</label>
+<input id="password" name="password" type="password" required maxlength="512" autocomplete="new-password">
+<label for="label">Nom du compte (facultatif)</label>
+<input id="label" name="label" placeholder="Mon compte de test" maxlength="80">
+<label class="agree"><input id="confirmDemoOnly" type="checkbox" required><span>Je confirme qu'il s'agit d'un <strong>compte démo</strong>, sans fonds réels. Je comprends qu'aucun ordre ne sera exécuté pendant cette phase de vérification.</span></label>
+<button id="submit" type="submit">Enregistrer mon compte démo</button>
+<div id="message" role="status" aria-live="polite"></div>
+</form>
+<div class="note">MyFlowFX ne te demandera jamais ton mot de passe dans un message ou sur GitHub. Renseigne-le uniquement dans un formulaire sécurisé après activation du service.</div>
+</section>
+<section class="card">
+<h2>Connexions enregistrées</h2>
+<p class="small">Le statut « Vérifié » signifie seulement que les identifiants correspondent à un compte démo ; il ne signifie pas que la gestion automatique est active.</p>
+<div id="accounts" class="skeleton">Chargement…</div>
+</section>
+</div></main>
+<script>
+'use strict';
+const token=localStorage.getItem('tf_token');
+if(!token) location.replace('/app');
+const $=id=>document.getElementById(id);
+function showMessage(message,success=false){$('message').textContent=message;$('message').className=success?'success':'';}
+async function request(url,options={}){
+ const response=await fetch(url,{...options,headers:{'Authorization':'Bearer '+token,...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},cache:'no-store'});
+ if(response.status===401){localStorage.removeItem('tf_token');location.replace('/app');throw new Error('Connexion expirée');}
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(result.error||'Erreur serveur ('+response.status+')');
+ return result;
+}
+const names={pending:'En attente du serveur',verified_demo:'Compte démo vérifié',rejected_live:'Refusé : compte réel',failed:'Vérification échouée'};
+async function loadAccounts(){
+ const box=$('accounts');
+ try{
+  const data=await request('/api/demo/accounts');
+  box.replaceChildren();
+  if(!data.accounts.length){box.textContent='Aucun compte enregistré.';return;}
+  for(const a of data.accounts){
+   const wrap=document.createElement('div');wrap.className='account';
+   const info=document.createElement('div');info.className='account-info';
+   const title=document.createElement('div');title.className='account-name';title.textContent=a.label||('Compte '+a.login);
+   const sub=document.createElement('div');sub.className='account-sub';sub.textContent=a.login+' · '+a.server;
+   const status=document.createElement('span');status.className='status '+a.status;status.textContent=names[a.status]||a.status;
+   const details=document.createElement('div');details.append(title,sub,status);
+   info.append(details);
+   const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='Supprimer';
+   del.addEventListener('click',async()=>{
+    if(!confirm('Supprimer ce compte démo et ses identifiants enregistrés ?'))return;
+    del.disabled=true;
+    try{await request('/api/demo/accounts/'+encodeURIComponent(a.id),{method:'DELETE'});await loadAccounts();}
+    catch(e){showMessage(e.message);del.disabled=false;}
+   });
+   wrap.append(info,del);box.append(wrap);
+  }
+ }catch(e){box.textContent=e.message;}
+}
+$('connect-form').addEventListener('submit',async(event)=>{
+ event.preventDefault();$('submit').disabled=true;showMessage('');
+ const payload={login:$('login').value.trim(),server:$('server').value.trim(),password:$('password').value,
+  label:$('label').value.trim(),confirmDemoOnly:$('confirmDemoOnly').checked};
+ try{
+  const result=await request('/api/demo/accounts',{method:'POST',body:JSON.stringify(payload)});
+  $('password').value='';$('login').value='';$('server').value='';$('label').value='';$('confirmDemoOnly').checked=false;
+  showMessage(result.message||'Compte ajouté',true);await loadAccounts();
+ }catch(e){showMessage(e.message);}finally{$('submit').disabled=false;}
+});
+loadAccounts();
+</script>
+</body></html>
