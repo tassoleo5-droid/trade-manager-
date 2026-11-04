@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeFlow — Gestion automatique MT5</title>
+<title>MyFlowFX — Gestion automatique MT5</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -157,7 +157,7 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
 <div class="page">
 
 <nav class="nav">
-  <div class="logo">Trade<span>Flow</span></div>
+  <div class="logo">MyFlow<span>FX</span></div>
   <button class="nav-cta" onclick="goToApp()">Commencer</button>
 </nav>
 
@@ -167,63 +167,42 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
     Gestion automatique MT5
   </div>
   <h1 class="hero-title">L'algo gère.<br><span class="accent">Vous respirez.</span></h1>
-  <p class="hero-sub">TradeFlow déplace votre SL, prend vos profits partiels et gère votre break-even automatiquement, 24h/24, même téléphone éteint.</p>
+  <p class="hero-sub">MyFlowFX prépare un gestionnaire de positions MT5 automatisé. La version bêta est en cours de validation sur comptes démo.</p>
   <div class="cta-row">
-    <button class="btn-primary" onclick="goToApp()">Essai gratuit</button>
+    <button class="btn-primary" onclick="goToApp()">Accéder à la bêta démo</button>
     <button class="btn-secondary" onclick="scrollTo('#comment')">Voir comment ça marche</button>
   </div>
 
   <div class="stats-bar">
-    <div class="stat-item">
-      <div class="stat-num green" data-count="78">0<span style="font-size:0.6em">%</span></div>
-      <div class="stat-lbl">Taux de réussite avec l'algo</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" data-count="1800">0</div>
-      <div class="stat-lbl">Trades gérés</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" data-count="24">0<span style="font-size:0.6em">h/24</span></div>
-      <div class="stat-lbl">Fonctionne en autonomie</div>
-    </div>
+    <div class="stat-item"><div class="stat-num green">MT5</div><div class="stat-lbl">Connexion démo en préparation</div></div>
+    <div class="stat-item"><div class="stat-num">SL</div><div class="stat-lbl">Break-even programmable</div></div>
+    <div class="stat-item"><div class="stat-num">TP</div><div class="stat-lbl">Sorties partielles configurables</div></div>
   </div>
 </section>
 
 <section class="section reveal">
-  <div class="section-eyebrow">La différence</div>
-  <h2 class="section-title">Le retail perd. <span class="accent">L'algo gagne.</span></h2>
-  <p class="section-sub">Les émotions coûtent cher. TradeFlow applique vos règles sans hésitation, sans peur, sans FOMO.</p>
-  <div class="compare-wrap">
-    <div class="compare-col">
-      <div class="compare-lbl">Trader retail</div>
-      <div class="compare-val red">43%</div>
-      <div class="compare-desc">de positions bien gérées</div>
-    </div>
-    <div class="compare-vs">VS</div>
-    <div class="compare-col">
-      <div class="compare-lbl">TradeFlow</div>
-      <div class="compare-val green">78%</div>
-      <div class="compare-desc">de positions bien gérées</div>
-    </div>
-  </div>
+  <div class="section-eyebrow">Notre approche</div>
+  <h2 class="section-title">Vous entrez. <span class="accent">MyFlowFX prépare les sorties.</span></h2>
+  <p class="section-sub">Le trader choisit ses entrées sur MT5. Les paramètres de gestion et les contrôles seront automatisés après validation des tests en compte démo.</p>
 </section>
 
 <section class="section reveal">
-  <div class="section-eyebrow">Pourquoi TradeFlow</div>
+  <div class="section-eyebrow">Pourquoi MyFlowFX</div>
   <h2 class="section-title">Tradez <span class="accent">sans émotion.</span></h2>
-  <p class="section-sub">Chaque règle que vous définissez est appliquée automatiquement.</p>
+  <p class="section-sub">Vos règles sont enregistrées côté serveur. Leur exécution automatique sera activée après validation démo.</p>
   <div class="features">
-    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🛡</div><h3>Break-even automatique</h3><p>Dès +1R de profit, le SL remonte au prix d'entrée. Votre capital est protégé sans intervention.</p></div>
-    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📊</div><h3>Profits partiels</h3><p>Fermez 50% au TP1, laissez courir le reste. Chaque palier géré précisément selon vos règles.</p></div>
-    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📱</div><h3>100% mobile</h3><p>Ouvrez un trade sur MT5, paramétrez vos niveaux sur TradeFlow. L'algo tourne sans votre ordi.</p></div>
-    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🔒</div><h3>Vos fonds, votre broker</h3><p>TradeFlow n'a jamais accès à votre argent. Il agit uniquement sur vos positions ouvertes.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🛡</div><h3>Break-even automatique</h3><p>Définissez un seuil en R pour préparer le déplacement du SL au prix d'entrée. Les ordres ne sont pas encore activés.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📊</div><h3>Profits partiels</h3><p>Définissez vos objectifs TP en R et les pourcentages à clôturer. La validation des ordres reste en phase de test.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">📱</div><h3>100% mobile</h3><p>Ouvrez vos positions sur MT5 et préparez vos règles sur MyFlowFX. L'exécution côté serveur arrive après la bêta.</p></div>
+    <div class="feature-card" onmousemove="moveGlow(event,this)"><div class="feature-icon">🔒</div><h3>Vos fonds, votre broker</h3><p>MyFlowFX ne vous demande pas de lui transférer des fonds. Le futur moteur agira sur vos positions ouvertes via des autorisations de trading.</p></div>
   </div>
 </section>
 
 <section class="section reveal">
   <div class="section-eyebrow">Aperçu</div>
-  <h2 class="section-title">Le dashboard <span class="accent">en temps réel.</span></h2>
-  <p class="section-sub">Chaque règle. Chaque position. Chaque euro. Suivi en direct.</p>
+  <h2 class="section-title">Le dashboard <span class="accent">en préparation.</span></h2>
+  <p class="section-sub">Aperçu de l'interface visée. Les données ci-dessous sont fictives.</p>
+  <div style="font-size:12px;color:#f6c985;margin-bottom:12px">Maquette illustrative — aucun résultat réel présenté</div>
   <div class="dashboard-preview">
     <div class="dash-header">
       <div>
@@ -254,54 +233,26 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
 
 <section class="section reveal" id="comment">
   <div class="section-eyebrow">Comment ça marche</div>
-  <h2 class="section-title">En 3 étapes, <span class="accent">c'est actif.</span></h2>
+  <h2 class="section-title">En 3 étapes, <span class="accent">préparez votre compte.</span></h2>
   <div class="features" style="margin-top:2rem">
-    <div class="feature-card"><div class="feature-icon">1</div><h3>Créez votre compte</h3><p>Inscription en 30 secondes avec votre email. Aucune carte bancaire requise.</p></div>
-    <div class="feature-card"><div class="feature-icon">2</div><h3>Connectez MT5</h3><p>Liez votre compte MetaTrader 5 via votre identifiant MetaApi. Sécurisé.</p></div>
-    <div class="feature-card"><div class="feature-icon">3</div><h3>Définissez vos règles</h3><p>Break-even, TP1, TP2, TP3. L'algo applique vos règles 24h/24.</p></div>
-    <div class="feature-card"><div class="feature-icon">✓</div><h3>Vous respirez</h3><p>Fermez votre ordi. Vos trades sont gérés automatiquement.</p></div>
+    <div class="feature-card"><div class="feature-icon">1</div><h3>Créez votre compte</h3><p>Créez votre accès MyFlowFX avec votre adresse e-mail.</p></div>
+    <div class="feature-card"><div class="feature-icon">2</div><h3>Connectez MT5</h3><p>En bêta, saisissez les informations de votre compte MT5 démo dans l'espace sécurisé.</p></div>
+    <div class="feature-card"><div class="feature-icon">3</div><h3>Définissez vos règles</h3><p>Configurez break-even, TP1, TP2, TP3 et sauvegardez vos préférences.</p></div>
+    <div class="feature-card"><div class="feature-icon">✓</div><h3>Vous respirez</h3><p>Les comptes démo seront testés sur le futur moteur Windows avant toute automatisation.</p></div>
   </div>
 </section>
 
 <section class="section reveal">
-  <div class="section-eyebrow">Tarifs</div>
-  <h2 class="section-title">Simple. <span class="accent">Transparent.</span></h2>
-  <p class="section-sub">Commencez gratuitement. Passez Pro quand vous êtes prêt.</p>
-  <div class="pricing">
-    <div class="plan">
-      <div class="plan-name">Starter</div>
-      <div class="plan-price">0€</div>
-      <div class="plan-period">Pour toujours</div>
-      <ul class="plan-features">
-        <li>1 compte MT5</li>
-        <li>Break-even automatique</li>
-        <li>Jusqu'à 2 TP</li>
-        <li>Journal des actions</li>
-      </ul>
-      <button class="plan-btn" onclick="goToApp()">Commencer</button>
-    </div>
-    <div class="plan featured">
-      <div class="plan-badge">Plus populaire</div>
-      <div class="plan-name">Pro</div>
-      <div class="plan-price">24€<span>/mois</span></div>
-      <div class="plan-period">Essai 14 jours gratuit</div>
-      <ul class="plan-features">
-        <li>Comptes MT5 illimités</li>
-        <li>3 TP ou + configurables</li>
-        <li>Règles personnalisées</li>
-        <li>Alertes mobile</li>
-        <li>Support prioritaire</li>
-      </ul>
-      <button class="plan-btn" onclick="goToApp()">Essayer Pro</button>
-    </div>
-  </div>
+  <div class="section-eyebrow">Bêta privée</div>
+  <h2 class="section-title">Développement <span class="accent">en cours.</span></h2>
+  <p class="section-sub">Les tarifs seront annoncés après les tests de sécurité et de fiabilité sur comptes démo. Aucun abonnement ni promesse de performance n'est proposé à ce stade.</p>
 </section>
 
 <section class="section reveal">
   <div class="section-eyebrow">FAQ</div>
   <h2 class="section-title">Vos questions, <span class="accent">nos réponses.</span></h2>
   <div class="faq">
-    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">TradeFlow a-t-il accès à mon argent ? <span class="faq-plus">+</span></div><div class="faq-a">Non. TradeFlow se connecte à votre compte MT5 en lecture et en gestion des positions uniquement. Il ne peut ni retirer ni déposer de fonds. Votre argent reste sur votre broker.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">MyFlowFX a-t-il accès à mon argent ? <span class="faq-plus">+</span></div><div class="faq-a">Non. MyFlowFX se connecte à votre compte MT5 en lecture et en gestion des positions uniquement. Il ne peut ni retirer ni déposer de fonds. Votre argent reste sur votre broker.</div></div>
     <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Faut-il garder son ordinateur allumé ? <span class="faq-plus">+</span></div><div class="faq-a">Non. Tout tourne sur nos serveurs cloud 24h/24. Vous pouvez éteindre votre ordinateur, l'algo continue.</div></div>
     <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Quels brokers sont compatibles ? <span class="faq-plus">+</span></div><div class="faq-a">Tous les brokers qui supportent MetaTrader 5 : ICMarkets, Pepperstone, XM, Admirals, et des centaines d'autres.</div></div>
     <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Puis-je reprendre la main à tout moment ? <span class="faq-plus">+</span></div><div class="faq-a">Oui, à tout moment. Vous pouvez stopper l'algo, modifier vos niveaux ou intervenir manuellement.</div></div>
@@ -310,11 +261,11 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
 
 <section class="final-cta reveal">
   <h2>Prêt à trader <span style="color:#4ade80">sans émotion ?</span></h2>
-  <p>Rejoignez les traders qui ont automatisé la gestion de leurs positions.</p>
-  <button class="btn-primary" onclick="goToApp()">Créer mon compte gratuitement</button>
+  <p>Découvrez la bêta de MyFlowFX. Les règles sont configurables, l'exécution réelle reste désactivée.</p>
+  <button class="btn-primary" onclick="goToApp()">Découvrir la bêta démo</button>
 </section>
 
-<div class="footer">TradeFlow — Gestion automatisée MT5 · Les performances passées ne garantissent pas les performances futures.</div>
+<div class="footer">MyFlowFX — Gestion automatisée MT5 · Les performances passées ne garantissent pas les performances futures.</div>
 
 </div>
 
