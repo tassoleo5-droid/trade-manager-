@@ -74,8 +74,9 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     if(!process.env.MYFLOWFX_CREDENTIAL_KEY) {
       return res.status(503).json({error:'Connexion MT5 non configurée côté serveur'});
     }
-    const client=await pool.connect();
+    let client;
     try {
+      client=await pool.connect();
       const {login,server,password,label}=validation.account;
       const accountId=crypto.randomUUID();
       const jobId=crypto.randomUUID();
@@ -97,11 +98,11 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
       await client.query('COMMIT');
       res.status(201).json({id:accountId,status:'pending',message:'Compte enregistré. Vérification démo en attente du serveur Windows.'});
     } catch(e) {
-      await client.query('ROLLBACK').catch(()=>{});
+      if(client) await client.query('ROLLBACK').catch(()=>{});
       if(e.code==='23505') return res.status(409).json({error:'Ce compte MT5 existe déjà'});
       res.status(500).json({error:'Impossible d’enregistrer le compte'});
     } finally {
-      client.release();
+      if(client) client.release();
     }
   });
 
@@ -126,9 +127,23 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     if(!process.env.MYFLOWFX_CREDENTIAL_KEY) {
       return res.status(503).json({error:'Service non configuré'});
     }
-    const client=await pool.connect();
+    let client;
     try {
+      client=await pool.connect();
       await client.query('BEGIN');
+      // Expired verification jobs are retried at most three times.
+      await client.query(`
+        UPDATE demo_mt5_accounts a
+        SET status='failed',last_error_code='TERMINAL_UNAVAILABLE',updated_at=NOW()
+        FROM demo_mt5_jobs j
+        WHERE j.account_id=a.id AND a.status='pending'
+          AND j.state='running' AND j.attempts>=3 AND j.lease_until<NOW()
+      `);
+      await client.query(`
+        UPDATE demo_mt5_jobs
+        SET state='failed',lease_until=NULL
+        WHERE state='running' AND attempts>=3 AND lease_until<NOW()
+      `);
       const next=await client.query(`
         SELECT j.id AS job_id,j.account_id,a.user_id,a.login,a.server,a.password_enc
         FROM demo_mt5_jobs j JOIN demo_mt5_accounts a ON a.id=j.account_id
@@ -159,10 +174,10 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
         mode:'read_only_demo_verification'
       });
     } catch(_e) {
-      await client.query('ROLLBACK').catch(()=>{});
+      if(client) await client.query('ROLLBACK').catch(()=>{});
       res.status(503).json({error:'Vérification indisponible'});
     } finally {
-      client.release();
+      if(client) client.release();
     }
   });
 
@@ -176,8 +191,9 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     }
     const safeCode=['INVALID_CREDENTIALS','TERMINAL_UNAVAILABLE','ACCOUNT_MISMATCH','NETWORK_ERROR','UNKNOWN'].includes(errorCode)
       ? errorCode : 'UNKNOWN';
-    const client=await pool.connect();
+    let client;
     try {
+      client=await pool.connect();
       await client.query('BEGIN');
       const r=await client.query(`
         SELECT j.account_id,a.login FROM demo_mt5_jobs j
@@ -209,10 +225,10 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
       await client.query('COMMIT');
       res.json({ok:true});
     } catch(_e) {
-      await client.query('ROLLBACK').catch(()=>{});
+      if(client) await client.query('ROLLBACK').catch(()=>{});
       res.status(500).json({error:'Impossible de valider le résultat'});
     } finally {
-      client.release();
+      if(client) client.release();
     }
   });
 
