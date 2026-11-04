@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeFlow</title>
+<title>MyFlowFX — Tableau de bord</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -200,7 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <div class="auth-wrap" id="auth-wrap">
   <div class="auth-card">
-    <div class="auth-logo">Trade<span>Flow</span></div>
+    <div class="auth-logo">MyFlow<span>FX</span></div>
     <div class="auth-sub">Gérez vos trades automatiquement</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
@@ -215,8 +215,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <div class="app" id="app">
   <div class="topbar">
-    <span class="topbar-logo" onclick="showDashboard()">Trade<span>Flow</span></span>
+    <span class="topbar-logo" onclick="showDashboard()">MyFlow<span>FX</span></span>
     <div class="topbar-right">
+      <a href="/accounts" style="color:#4ade80;text-decoration:none;font-size:13px;font-weight:600">Comptes MT5</a>
       <div class="status-pill"><span class="sdot" id="sdot"></span><span id="stext">Déconnecté</span></div>
       <button class="icon-btn" onclick="showSettings()" title="Réglages">⚙</button>
     </div>
@@ -225,19 +226,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
   <div id="dashboard-view">
     <div id="mt5-section">
       <div class="mt5-card" id="mt5-connect-card">
-        <div class="mt5-title">Connecter votre compte MT5</div>
-        <div class="mt5-sub">Pour connecter votre compte, récupérez votre Account ID sur <strong>app.metaapi.cloud</strong> dans la section MT Accounts.</div>
-        <div class="how-to">
-          <strong>Comment trouver votre Account ID :</strong><br>
-          1. Connectez-vous sur app.metaapi.cloud<br>
-          2. Cliquez sur <strong>MT Accounts</strong><br>
-          3. Copiez l'ID affiché sous votre compte
-        </div>
-        <div class="mt5-field">
-          <label>Account ID MetaApi</label>
-          <input type="text" id="mt5-account-id" placeholder="33ab2a4a-d0b6-498c-85e3-..." />
-        </div>
-        <button class="btn-connect" onclick="connectMT5()">Connecter</button>
+        <div class="mt5-title">Connecter MT5 à MyFlowFX</div>
+        <div class="mt5-sub">Renseignez votre identifiant MT5, votre serveur broker et votre mot de passe dans l'espace dédié. Aucune création de compte MetaApi n'est nécessaire.</div>
+        <div class="how-to"><strong>Phase de développement :</strong> seuls les comptes démo sont acceptés. Les connexions seront vérifiées par le moteur Windows avant toute activation de la gestion automatique.</div>
+        <a href="/accounts" class="btn-connect" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Gérer mes comptes MT5 →</a>
       </div>
       <div class="connected-badge" id="mt5-connected" style="display:none">
         ✓ Compte MT5 connecté et actif
