@@ -57,7 +57,7 @@ button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;col
 </section>
 <section class="card full">
 <h2>Règles de gestion</h2>
-<p class="small">Ces préférences sont sauvegardées sur MyFlowFX et pourront être appliquées aux positions ouvertes manuellement sur MT5 une fois les tests démo terminés. Le moteur reste désactivé.</p>
+<p class="small">Ces préférences sont sauvegardées sur MyFlowFX et pourront être appliquées aux positions ouvertes manuellement sur MT5 une fois les tests démo terminés. Le moteur reste désactivé. Chaque position devra être ouverte avec un stop-loss initial pour définir 1R.</p>
 <form id="rules-form">
 <label for="be">Break-even : après combien de R ?</label>
 <input id="be" type="number" min="0.1" max="10" step="0.1" value="1" required>
@@ -66,9 +66,9 @@ button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;col
 <option value="1">1 TP</option><option value="2">2 TP</option><option value="3" selected>3 TP</option>
 </select>
 <div id="tp-controls" style="display:flex;gap:12px;flex-wrap:wrap">
-<div><label for="tp1">TP1 — %</label><input id="tp1" type="number" min="1" max="100" value="50" required style="max-width:130px"></div>
-<div id="tp2-wrap"><label for="tp2">TP2 — %</label><input id="tp2" type="number" min="1" max="100" value="25" required style="max-width:130px"></div>
-<div id="tp3-wrap"><label for="tp3">TP3 — %</label><input id="tp3" type="number" min="1" max="100" value="25" required style="max-width:130px"></div>
+<div><label for="tp1">TP1 — % à quel R ?</label><input id="tp1" aria-label="TP1 pourcentage" type="number" min="1" max="100" value="50" required style="max-width:90px"> <input id="tp1r" aria-label="TP1 cible en R" type="number" min="0.1" max="30" step="0.1" value="1" required style="max-width:90px"></div>
+<div id="tp2-wrap"><label for="tp2">TP2 — % à quel R ?</label><input id="tp2" aria-label="TP2 pourcentage" type="number" min="1" max="100" value="25" required style="max-width:90px"> <input id="tp2r" aria-label="TP2 cible en R" type="number" min="0.1" max="30" step="0.1" value="2" required style="max-width:90px"></div>
+<div id="tp3-wrap"><label for="tp3">TP3 — % à quel R ?</label><input id="tp3" aria-label="TP3 pourcentage" type="number" min="1" max="100" value="25" required style="max-width:90px"> <input id="tp3r" aria-label="TP3 cible en R" type="number" min="0.1" max="30" step="0.1" value="3" required style="max-width:90px"></div>
 </div>
 <div style="margin-top:20px"><button id="save-rules" type="submit">Enregistrer les réglages</button></div>
 <div id="rules-message" role="status" aria-live="polite" class="small" style="margin-top:12px"></div>
@@ -129,7 +129,9 @@ function setCount(count,initial=false){
  for(let i=1;i<=3;i++){
   const field=$('tp'+i);field.disabled=i>count;
   field.required=i<=count;
-  if(!initial)field.value=preset[i-1];
+  $('tp'+i+'r').disabled=i>count;
+  $('tp'+i+'r').required=i<=count;
+  if(!initial){field.value=preset[i-1];$('tp'+i+'r').value=i;}
  }
  $('tp2-wrap').style.display=count>1?'block':'none';
  $('tp3-wrap').style.display=count>2?'block':'none';
@@ -141,20 +143,27 @@ async function loadRules(){
   $('be').value=rules.beThreshold;
   $('tp-count').value=rules.tpCount;
   setCount(rules.tpCount,true);
-  for(let i=1;i<=rules.tpCount;i++)$('tp'+i).value=rules.tpPercents[i-1];
+  for(let i=1;i<=rules.tpCount;i++){
+   $('tp'+i).value=rules.tpPercents[i-1];
+   $('tp'+i+'r').value=(rules.tpTargetsR||[1,2,3])[i-1];
+  }
  }catch(e){$('rules-message').textContent=e.message;}
 }
 $('rules-form').addEventListener('submit',async event=>{
  event.preventDefault();
  const count=Number($('tp-count').value);
  const percentages=Array.from({length:count},(_,i)=>Number($('tp'+(i+1)).value));
+ const targets=Array.from({length:count},(_,i)=>Number($('tp'+(i+1)+'r').value));
  if(percentages.some(v=>!Number.isInteger(v)||v<1||v>100)||percentages.reduce((a,b)=>a+b,0)!==100){
   $('rules-message').textContent='Le total des TP doit être égal à 100 %, avec une part positive par TP.';return;
+ }
+ if(targets.some((v,i)=>!Number.isFinite(v)||v<0.1||v>30||(i>0&&v<=targets[i-1]))){
+  $('rules-message').textContent='Les cibles TP doivent être croissantes (entre 0,1R et 30R).';return;
  }
  $('save-rules').disabled=true;
  try {
   await request('/api/rules',{method:'PUT',body:JSON.stringify({
-   enabled:false,beThreshold:Number($('be').value),tpCount:count,tpPercents:percentages
+   enabled:false,beThreshold:Number($('be').value),tpCount:count,tpPercents:percentages,tpTargetsR:targets
   })});
   $('rules-message').textContent='Réglages sauvegardés ✓ (automatisation encore inactive)';
  }catch(e){$('rules-message').textContent=e.message;}
