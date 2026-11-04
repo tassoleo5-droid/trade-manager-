@@ -25,7 +25,7 @@ class AccountConfig:
         password = os.environ.get("MT5_PASSWORD", "")
         if not raw.isdecimal() or not (0 < int(raw) < 2**63):
             raise ValueError("MT5_LOGIN must be a positive numeric account ID")
-        if not server or len(server) > 200 or any(c in server for c in "\\r\\n"):
+        if not server or len(server) > 200 or any(ord(c) < 32 for c in server):
             raise ValueError("MT5_SERVER is invalid")
         if not password:
             raise ValueError("MT5_PASSWORD is required")
