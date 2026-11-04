@@ -23,6 +23,7 @@ class PlannedAction:
     kind: str
     position_ticket: int
     stop_loss: Optional[float] = None
+    volume: Optional[float] = None
 
 
 def plan_break_even(position: Position, threshold_r: float,
