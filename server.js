@@ -9,7 +9,14 @@ const { Pool } = require('pg');
 const app = express();
 const META_API = 'https://mt-client-api-v1.london.agiliumtrade.ai';
 const METAAPI_TOKEN = process.env.METAAPI_TOKEN;
-const JWT_SECRET = process.env.JWT_SECRET || 'trademanager_secret_2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be set to a strong secret of at least 32 characters');
+}
+if (!METAAPI_TOKEN) {
+  throw new Error('METAAPI_TOKEN is required until the MT5 bridge migration is complete');
+}
+const { validateTradeRequest } = require('./tradeValidation');
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -39,8 +46,10 @@ async function initDB() {
 }
 initDB();
 
-app.use(cors());
-app.use(express.json());
+// Same-origin browser app: do not grant arbitrary websites API access.
+// If a separate frontend is deployed, configure a strict allowlist instead.
+app.disable('x-powered-by');
+app.use(express.json({ limit: '32kb' }));
 
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -100,11 +109,12 @@ app.post('/api/trade', authMiddleware, async (req, res) => {
     const result = await pool.query('SELECT mt5_account_id FROM users WHERE id = $1', [req.user.id]);
     const user = result.rows[0];
     if (!user?.mt5_account_id) return res.status(400).json({ error: 'Aucun compte MT5 connecté' });
-    const { method, path: apiPath, body } = req.body;
-    const response = await fetch(`${META_API}/users/current/accounts/${user.mt5_account_id}${apiPath}`, {
-      method: method || 'GET',
+    const operation = validateTradeRequest(req.body);
+    if (operation.error) return res.status(400).json({ error: operation.error });
+    const response = await fetch(`${META_API}/users/current/accounts/${encodeURIComponent(user.mt5_account_id)}${operation.path}`, {
+      method: operation.method,
       headers: { 'auth-token': METAAPI_TOKEN, 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined
+      body: operation.body ? JSON.stringify(operation.body) : undefined
     });
     const text = await response.text();
     const result2 = text ? JSON.parse(text) : {};
