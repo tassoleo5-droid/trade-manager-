@@ -39,7 +39,9 @@ button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;col
 <label for="login">Identifiant du compte MT5</label>
 <input id="login" name="login" inputmode="numeric" pattern="[0-9]+" placeholder="Ex. 12345678" required maxlength="20">
 <label for="server">Serveur du broker</label>
-<input id="server" name="server" placeholder="Ex. Broker-Demo" required maxlength="128">
+<input id="server" name="server" list="suggested-mt5-servers" placeholder="Ex. FusionMarkets-Demo" required maxlength="128">
+<datalist id="suggested-mt5-servers"><option value="FusionMarkets-Demo"></option></datalist>
+<div class="small" style="margin-top:6px">Fusion Markets (démo) : <code>FusionMarkets-Demo</code>. Vérifiez le serveur exact dans les détails de votre compte.</div>
 <label for="password">Mot de passe de trading (compte démo uniquement)</label>
 <input id="password" name="password" type="password" required maxlength="512" autocomplete="new-password">
 <label for="label">Nom du compte (facultatif)</label>
