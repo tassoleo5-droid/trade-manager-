@@ -18,6 +18,9 @@ jobs:
       - run: node --check server.js
       - run: node --check tradeValidation.js
       - run: node --check rulesValidation.js
+      - run: node --check demoAccountsApi.js
+      - run: node --check demoAccountValidation.js
+      - run: node --check credentialCrypto.js
 
   mt5-connector-mocks:
     runs-on: ubuntu-latest
