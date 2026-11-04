@@ -1,6 +1,6 @@
 'use strict';
 const ID_RE = /^[0-9]{1,20}$/;
-const SERVER_RE = /^[a-zA-Z0-9][a-zA-Z0-9._ :/-]{0,127}$/;
+const SERVER_RE = /^[a-zA-Z0-9][a-zA-Z0-9._ :-]{0,127}$/;
 const UUID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const WORKER_RE = /^[a-zA-Z0-9_-]{3,64}$/;
 
