@@ -6,7 +6,7 @@ const { encryptCredential, decryptCredential } = require('./credentialCrypto');
 const { validateDemoAccount, validUuid, validWorkerId } = require('./demoAccountValidation');
 
 async function initDemoDB(pool) {
-  await pool.query(\`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS demo_mt5_accounts (
       id UUID PRIMARY KEY,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -21,8 +21,8 @@ async function initDemoDB(pool) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (user_id,login,server)
     )
-  \`);
-  await pool.query(\`
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS demo_mt5_jobs (
       id UUID PRIMARY KEY,
       account_id UUID NOT NULL UNIQUE REFERENCES demo_mt5_accounts(id) ON DELETE CASCADE,
@@ -34,9 +34,9 @@ async function initDemoDB(pool) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       completed_at TIMESTAMPTZ
     )
-  \`);
-  await pool.query(\`CREATE INDEX IF NOT EXISTS demo_mt5_jobs_claim_idx
-    ON demo_mt5_jobs (state,created_at)\`);
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS demo_mt5_jobs_claim_idx
+    ON demo_mt5_jobs (state,created_at)`);
 }
 
 function workerAuthenticated(req) {
@@ -60,8 +60,8 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
   app.get('/api/demo/accounts',authMiddleware,noStore,async(req,res)=>{
     try {
       const r=await pool.query(
-        \`SELECT id,login,server,label,status,last_error_code,created_at,updated_at
-          FROM demo_mt5_accounts WHERE user_id=$1 ORDER BY created_at DESC\`,[req.user.id]);
+        `SELECT id,login,server,label,status,last_error_code,created_at,updated_at
+          FROM demo_mt5_accounts WHERE user_id=$1 ORDER BY created_at DESC`,[req.user.id]);
       res.json({accounts:r.rows,executionEnabled:false});
     } catch(_e) {
       res.status(500).json({error:'Impossible de charger les comptes'});
@@ -89,8 +89,8 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
         return res.status(409).json({error:'Limite de 5 comptes démo atteinte'});
       }
       await client.query(
-        \`INSERT INTO demo_mt5_accounts(id,user_id,login,server,label,password_enc)
-          VALUES($1,$2,$3,$4,$5,$6)\`,
+        `INSERT INTO demo_mt5_accounts(id,user_id,login,server,label,password_enc)
+          VALUES($1,$2,$3,$4,$5,$6)`,
         [accountId,req.user.id,login,server,label,encrypted]);
       await client.query(
         'INSERT INTO demo_mt5_jobs(id,account_id) VALUES($1,$2)',[jobId,accountId]);
@@ -129,7 +129,7 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     const client=await pool.connect();
     try {
       await client.query('BEGIN');
-      const next=await client.query(\`
+      const next=await client.query(`
         SELECT j.id AS job_id,j.account_id,a.user_id,a.login,a.server,a.password_enc
         FROM demo_mt5_jobs j JOIN demo_mt5_accounts a ON a.id=j.account_id
         WHERE a.status='pending'
@@ -137,18 +137,18 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
             OR (j.state='running' AND j.lease_until<NOW() AND j.attempts<3))
         ORDER BY j.created_at
         FOR UPDATE OF j SKIP LOCKED LIMIT 1
-      \`);
+      `);
       if(!next.rowCount) {
         await client.query('COMMIT');
         return res.status(204).end();
       }
       const item=next.rows[0];
       const password=decryptCredential(item.password_enc,item.user_id,item.account_id);
-      await client.query(\`
+      await client.query(`
         UPDATE demo_mt5_jobs
         SET state='running',worker_id=$2,lease_until=NOW()+INTERVAL '120 seconds',
             attempts=attempts+1
-        WHERE id=$1\`,[item.job_id,workerId]);
+        WHERE id=$1`,[item.job_id,workerId]);
       await client.query('COMMIT');
       res.json({
         jobId:item.job_id,
@@ -179,12 +179,12 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     const client=await pool.connect();
     try {
       await client.query('BEGIN');
-      const r=await client.query(\`
+      const r=await client.query(`
         SELECT j.account_id,a.login FROM demo_mt5_jobs j
         JOIN demo_mt5_accounts a ON a.id=j.account_id
         WHERE j.id=$1 AND j.state='running' AND j.worker_id=$2
           AND j.lease_until>NOW()
-        FOR UPDATE OF j,a\`,[jobId,workerId]);
+        FOR UPDATE OF j,a`,[jobId,workerId]);
       if(!r.rowCount) {
         await client.query('ROLLBACK');
         return res.status(409).json({error:'Travail expiré ou non attribué'});
@@ -197,15 +197,15 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
       const error=status==='verified_demo'?null:
         status==='rejected_live'?'DEMO_ONLY':safeCode;
       // Discard credentials immediately for any identified live account.
-      await client.query(\`
+      await client.query(`
         UPDATE demo_mt5_accounts
         SET status=$2,last_error_code=$3,updated_at=NOW(),
             password_enc=CASE WHEN $2='rejected_live' THEN NULL ELSE password_enc END
-        WHERE id=$1\`,[r.rows[0].account_id,status,error]);
-      await client.query(\`
+        WHERE id=$1`,[r.rows[0].account_id,status,error]);
+      await client.query(`
         UPDATE demo_mt5_jobs
         SET state=$2,completed_at=NOW(),lease_until=NULL
-        WHERE id=$1\`,[jobId,status==='failed'?'failed':'completed']);
+        WHERE id=$1`,[jobId,status==='failed'?'failed':'completed']);
       await client.query('COMMIT');
       res.json({ok:true});
     } catch(_e) {
