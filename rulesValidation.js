@@ -18,7 +18,7 @@ function validateRules(input) {
       input.beThreshold < 0.1||input.beThreshold > 10) return {error:'Seuil BE invalide (0.1 à 10R)'};
   if (![1,2,3].includes(input.tpCount)) return {error:'Nombre de TP invalide'};
   if (!Array.isArray(input.tpPercents)||input.tpPercents.length!==input.tpCount ||
-      input.tpPercents.some(x=>typeof x!=='number'||!Number.isInteger(x)||x<0||x>100))
+      input.tpPercents.some(x=>typeof x!=='number'||!Number.isInteger(x)||x<=0||x>100))
     return {error:'Pourcentages TP invalides'};
   if (input.tpPercents.reduce((a,b)=>a+b,0)!==100)
     return {error:'Les TP doivent totaliser 100%'};
