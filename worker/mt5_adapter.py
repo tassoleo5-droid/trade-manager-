@@ -8,6 +8,10 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 
+class LiveAccountError(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True)
 class AccountConfig:
     login: int
@@ -45,6 +49,9 @@ def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None) ->
             raise RuntimeError("MT5 connected but account info unavailable")
         if int(account.login) != config.login:
             raise RuntimeError("MT5 returned a different account login")
+        demo_mode = getattr(terminal, "ACCOUNT_TRADE_MODE_DEMO", None)
+        if not isinstance(demo_mode, int) or getattr(account, "trade_mode", None) != demo_mode:
+            raise LiveAccountError("Only verified demo MT5 accounts may be used")
         positions = terminal.positions_get()
         if positions is None:
             raise RuntimeError("MT5 positions unavailable")
@@ -54,6 +61,7 @@ def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None) ->
             "server": str(account.server),
             "currency": str(account.currency),
             "positions_count": len(positions),
+            "demo_verified": True,
             "trading_actions_enabled": False,
         }
     finally:
