@@ -15,6 +15,15 @@ import urllib.request
 
 from mt5_adapter import AccountConfig, inspect_connection, LiveAccountError
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Never follow redirects with worker authorization or broker credentials."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+HTTPS_OPENER = urllib.request.build_opener(NoRedirect)
+
+
 
 def validate_agent_config(api_url, token, worker_id):
     parsed = urllib.parse.urlsplit(api_url)
@@ -39,7 +48,7 @@ def api_post(origin, route, token, worker_id, payload):
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=25) as response:
+        with HTTPS_OPENER.open(request, timeout=25) as response:
             if response.status == 204:
                 return None
             return json.loads(response.read(16_384).decode("utf-8"))
