@@ -252,10 +252,10 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
   <div class="section-eyebrow">FAQ</div>
   <h2 class="section-title">Vos questions, <span class="accent">nos réponses.</span></h2>
   <div class="faq">
-    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">MyFlowFX a-t-il accès à mon argent ? <span class="faq-plus">+</span></div><div class="faq-a">Non. MyFlowFX se connecte à votre compte MT5 en lecture et en gestion des positions uniquement. Il ne peut ni retirer ni déposer de fonds. Votre argent reste sur votre broker.</div></div>
-    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Faut-il garder son ordinateur allumé ? <span class="faq-plus">+</span></div><div class="faq-a">Non. Tout tourne sur nos serveurs cloud 24h/24. Vous pouvez éteindre votre ordinateur, l'algo continue.</div></div>
-    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Quels brokers sont compatibles ? <span class="faq-plus">+</span></div><div class="faq-a">Tous les brokers qui supportent MetaTrader 5 : ICMarkets, Pepperstone, XM, Admirals, et des centaines d'autres.</div></div>
-    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Puis-je reprendre la main à tout moment ? <span class="faq-plus">+</span></div><div class="faq-a">Oui, à tout moment. Vous pouvez stopper l'algo, modifier vos niveaux ou intervenir manuellement.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">MyFlowFX a-t-il accès à mon argent ? <span class="faq-plus">+</span></div><div class="faq-a">MyFlowFX n'est pas un dépositaire de fonds : le capital reste auprès de votre broker. Le futur connecteur aura néanmoins les permissions nécessaires pour modifier et clôturer les positions, et sera testé uniquement en démo.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Faut-il garder son ordinateur allumé ? <span class="faq-plus">+</span></div><div class="faq-a">Pas encore en bêta. La future architecture utilisera des serveurs MT5 centralisés pour ne pas dépendre de votre ordinateur. Cette fonction nécessite encore des tests.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Quels brokers sont compatibles ? <span class="faq-plus">+</span></div><div class="faq-a">La compatibilité sera vérifiée broker par broker sur comptes démo, y compris les règles de trading automatisé applicables.</div></div>
+    <div class="faq-item" onclick="toggleFAQ(this)"><div class="faq-q">Puis-je reprendre la main à tout moment ? <span class="faq-plus">+</span></div><div class="faq-a">La possibilité de suspendre le moteur côté serveur est prévue, mais elle n'est pas activée dans la bêta actuelle. Le contrôle manuel dans MT5 reste possible.</div></div>
   </div>
 </section>
 
@@ -265,7 +265,7 @@ h1.hero-title .accent{background:linear-gradient(180deg,#4ade80,#22c55e);-webkit
   <button class="btn-primary" onclick="goToApp()">Découvrir la bêta démo</button>
 </section>
 
-<div class="footer">MyFlowFX — Gestion automatisée MT5 · Les performances passées ne garantissent pas les performances futures.</div>
+<div class="footer">MyFlowFX — Bêta démo en développement · Aucune promesse de résultat ou de rendement.</div>
 
 </div>
 
