@@ -18,6 +18,7 @@ if (!METAAPI_TOKEN) {
 }
 const { validateTradeRequest } = require('./tradeValidation');
 const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
+const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -47,6 +48,7 @@ async function initDB() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+    await initDemoDB(pool);
     console.log('Database initialized ✓');
   } catch (e) {
     console.error('Database init error:', e.message);
@@ -146,6 +148,9 @@ app.get('/api/engine/status', authMiddleware, (req,res) => {
   res.json({status:'not_configured',liveTradingEnabled:false,
     message:'Le moteur MT5 direct nécessite un worker Windows vérifié.'});
 });
+
+// Demo onboarding is completely separate from the legacy MetaApi proxy.
+registerDemoAccountsApi(app, pool, authMiddleware);
 
 app.post('/api/trade', authMiddleware, async (req, res) => {
   try {
