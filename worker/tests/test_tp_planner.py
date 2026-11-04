@@ -51,7 +51,7 @@ class TakeProfitTests(unittest.TestCase):
         self.assertEqual(result.kind, "CLOSE_POSITION")
 
     def test_broker_minimum_lot_blocks_unsafe_partial(self):
-        self.assertIsNone(self.plan(initial_volume=.02, current_volume=.02,
+        self.assertIsNone(self.plan(initial_volume=.01, current_volume=.01,
                                     minimum_volume=.01, volume_step=.01))
 
     def test_rejects_targets_on_wrong_side_of_entry(self):
