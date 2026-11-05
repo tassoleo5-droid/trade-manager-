@@ -46,9 +46,11 @@ async function initDB() {
         id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
         last_seen TIMESTAMPTZ NOT NULL,
         demo BOOLEAN NOT NULL CHECK (demo),
+        automation_active BOOLEAN NOT NULL DEFAULT FALSE,
         positions_count INTEGER NOT NULL CHECK (positions_count >= 0)
       )
     `);
+    await pool.query('ALTER TABLE worker_heartbeat ADD COLUMN IF NOT EXISTS automation_active BOOLEAN NOT NULL DEFAULT FALSE');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS worker_position_snapshot (
         id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
@@ -147,7 +149,7 @@ app.put('/api/rules', authMiddleware, async (req, res) => {
 app.get('/api/engine/status', authMiddleware, async (_req, res) => {
   try {
     const [heartbeatResult, snapshotResult] = await Promise.all([
-      pool.query('SELECT last_seen, demo, positions_count FROM worker_heartbeat WHERE id = TRUE'),
+      pool.query('SELECT last_seen, demo, automation_active, positions_count FROM worker_heartbeat WHERE id = TRUE'),
       pool.query('SELECT positions FROM worker_position_snapshot WHERE id = TRUE')
     ]);
     const heartbeat = heartbeatResult.rows[0];
@@ -162,8 +164,11 @@ app.get('/api/engine/status', authMiddleware, async (_req, res) => {
       positionsCount: heartbeat?.positions_count ?? null,
       positions: Array.isArray(snapshot?.positions) ? snapshot.positions : [],
       liveTradingEnabled: false,
+      demoAutomationActive: heartbeat?.automation_active === true,
       message: isOnline
-        ? 'Worker MT5 démo connecté en lecture seule.'
+        ? (heartbeat?.automation_active === true
+          ? 'Worker MT5 démo connecté : break-even automatique actif.'
+          : 'Worker MT5 démo connecté en lecture seule.')
         : 'Aucun signal récent du worker MT5 démo.'
     });
   } catch (_error) {
@@ -188,14 +193,15 @@ app.post('/api/worker/heartbeat', async (req, res) => {
   try {
     await pool.query(
       `INSERT INTO worker_heartbeat (id, last_seen, demo, positions_count)
-       VALUES (TRUE, NOW(), $1, $2)
+       VALUES (TRUE, NOW(), $1, $2, $3)
        ON CONFLICT (id) DO UPDATE
        SET last_seen = EXCLUDED.last_seen, demo = EXCLUDED.demo,
+           automation_active = EXCLUDED.automation_active,
            positions_count = EXCLUDED.positions_count`,
-      [payload.demo, payload.positionsCount]
+      [payload.demo, payload.automation, payload.positionsCount]
     );
     res.set('Cache-Control', 'no-store');
-    return res.status(202).json({ status: 'accepted', execution: 'disabled' });
+    return res.status(202).json({ status: 'accepted', execution: payload.automation ? 'demo_break_even' : 'disabled' });
   } catch (_error) {
     return res.status(503).json({ error: 'Worker status storage unavailable' });
   }
