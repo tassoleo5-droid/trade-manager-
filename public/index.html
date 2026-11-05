@@ -420,8 +420,9 @@ async function handleAuth() {
     const data = await res.json();
     if (!res.ok) return showMsg(data.error || 'Erreur');
     if (currentTab === 'register') {
-      showMsg('Compte créé ! Connecte-toi maintenant.', 'success');
-      switchTab('login'); return;
+      switchTab('login');
+      showMsg('Compte créé. Tu peux maintenant te connecter.', 'success');
+      return;
     }
     token = data.token;
     localStorage.setItem('tf_token', token);
