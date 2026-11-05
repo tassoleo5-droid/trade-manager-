@@ -558,7 +558,7 @@ function checkTpTotal() {
 async function loadAlgoSettingsFromServer() {
   if (!token) return;
   try {
-    const res = await fetch('/api/rules', { headers: { 'Authorization': \`Bearer ${token}\` } });
+    const res = await fetch('/api/rules', { headers: { 'Authorization': `Bearer ${token}` } });
     const data = await res.json();
     if (!res.ok || !data.rules) return;
     settings = { ...settings, ...data.rules };
@@ -581,7 +581,7 @@ async function saveAlgoSettings() {
   try {
     const res = await fetch('/api/rules', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${token}\` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(rules)
     });
     const data = await res.json();
