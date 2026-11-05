@@ -1,8 +1,8 @@
-"""Automatic TP management for explicitly configured MT5 DEMO positions.
+"""Account-configured automatic TP management for verified MT5 DEMO Forex positions.
 
-Only USDCAD and USDJPY positions are eligible. At TP1 it closes 50% of the
-original volume; at final TP it closes the remainder. No entry order is ever sent.
-Requires MYFLOWFX_DEMO_AUTO_EXIT=1 and a verified Fusion Markets DEMO terminal.
+Rules are received from MyFlowFX staging for the verified demo account. It can
+only reduce or close existing Forex positions; it never sends entry orders.
+It is disabled unless MYFLOWFX_DEMO_AUTO_EXIT=1 is set locally.
 """
 import json
 import math
@@ -12,9 +12,9 @@ from pathlib import Path
 from diagnose_fusion_demo import EXPECTED_SERVER, diagnose
 
 STATE_FILE = Path(__file__).with_name("demo_exit_state.json")
-RULES = {
-    "USDCAD": {"tp1": 1.40156, "tpFinal": 1.40195, "tp1Percent": 50},
-    "USDJPY": {"tp1": 157.610, "tpFinal": 157.521, "tp1Percent": 50},
+FOREX_CURRENCIES = {
+    "AUD", "CAD", "CHF", "CNH", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF",
+    "JPY", "MXN", "NOK", "NZD", "PLN", "SEK", "SGD", "TRY", "USD", "ZAR",
 }
 
 def enabled():
@@ -37,27 +37,14 @@ def _price(terminal, position, side):
         raise RuntimeError("Prix actuel indisponible")
     return price
 
-def _hit(side, price, target):
-    return price >= target if side == "BUY" else price <= target
-
-def _rule_for(symbol):
-    normalized = str(symbol).upper()
-    for name, rule in RULES.items():
-        if normalized.startswith(name):
-            return name, rule
-    return None, None
-
 def _close(terminal, position, side, volume):
     info = terminal.symbol_info(position.symbol)
     if info is None:
         raise RuntimeError("Instrument indisponible")
     minimum = float(getattr(info, "volume_min", 0) or 0)
     step = float(getattr(info, "volume_step", 0) or 0)
-    if minimum <= 0 or step <= 0:
-        raise RuntimeError("Volume MT5 invalide")
-    rounded = math.floor((volume + 1e-12) / step) * step
-    rounded = round(rounded, 8)
-    if rounded < minimum:
+    rounded = round(math.floor((volume + 1e-12) / step) * step, 8) if step > 0 else 0
+    if minimum <= 0 or rounded < minimum:
         raise RuntimeError("Volume partiel inférieur au minimum du broker")
     result = terminal.order_send({
         "action": terminal.TRADE_ACTION_DEAL,
@@ -74,16 +61,28 @@ def _close(terminal, position, side, volume):
         raise RuntimeError("Clôture refusée: " + str(getattr(result, "retcode", "sans réponse")))
     return rounded
 
-def manage_positions(output=print):
+def _is_forex(terminal, symbol):
+    info = terminal.symbol_info(symbol)
+    base = str(getattr(info, "currency_base", "")).upper()
+    quote = str(getattr(info, "currency_profit", "")).upper()
+    return base in FOREX_CURRENCIES and quote in FOREX_CURRENCIES and base != quote
+
+def _valid_initial_stop(side, entry, stop):
+    return (side == "BUY" and stop < entry) or (side == "SELL" and stop > entry)
+
+def manage_positions(rules, output=print):
     if not enabled():
         return ["TP automatique désactivé"]
     if diagnose().get("status") != "demo_verified":
         raise RuntimeError("Vérification MT5 démo échouée : aucune clôture")
+    if not isinstance(rules, dict):
+        raise RuntimeError("Réglages du compte démo absents : aucune clôture")
+    targets = rules["tpTargetsR"]
+    percents = rules["tpPercents"]
     import MetaTrader5 as terminal
     if not terminal.initialize():
         raise RuntimeError("Terminal MT5 indisponible : aucune clôture")
-    state = _load_state()
-    outcomes = []
+    state, outcomes = _load_state(), []
     output("TP_DEMO: analyse TP démarrée")
     try:
         account = terminal.account_info()
@@ -95,37 +94,41 @@ def manage_positions(output=print):
         if positions is None:
             raise RuntimeError("Positions MT5 indisponibles : aucune clôture")
         output(f"TP_DEMO: {len(positions)} position(s) MT5 détectée(s)")
-        active = {str(p.ticket) for p in positions}
+        active = {str(position.ticket) for position in positions}
         for key in list(state):
             if key not in active:
                 del state[key]
         for position in positions:
             symbol = str(position.symbol).upper()
-            rule_name, rule = _rule_for(symbol)
-            if not rule:
-                outcomes.append(f"{symbol}: aucune règle TP configurée")
+            if not _is_forex(terminal, position.symbol):
+                outcomes.append(f"{symbol}: hors Forex, ignoré")
                 continue
             side = "BUY" if position.type == terminal.POSITION_TYPE_BUY else "SELL"
-            entry = float(position.price_open)
-            if (side == "BUY" and not (rule["tp1"] > entry and rule["tpFinal"] > rule["tp1"])) or \
-               (side == "SELL" and not (rule["tp1"] < entry and rule["tpFinal"] < rule["tp1"])):
-                outcomes.append(f"{symbol}: TP incompatibles avec le sens {side}, ignoré")
-                continue
+            entry, stop = float(position.price_open), float(position.sl or 0)
             key = str(position.ticket)
-            record = state.setdefault(key, {"tp1Done": False})
-            price = _price(terminal, position, side)
-            outcomes.append(f"{rule_name}: {side} · prix {price:.5f} · TP1 {rule['tp1']:.5f} · final {rule['tpFinal']:.5f}")
-            if not record["tp1Done"] and _hit(side, price, rule["tp1"]):
-                original = float(position.volume)
-                amount = _close(terminal, position, side, original * rule["tp1Percent"] / 100)
-                record["tp1Done"] = True
-                outcomes.append(f"{symbol}: TP1 atteint, {amount} fermé")
-                _save_state(state)
+            record = state.setdefault(key, {"done": []})
+            if "risk" not in record:
+                if not _valid_initial_stop(side, entry, stop):
+                    outcomes.append(f"{symbol}: stop-loss initial requis avant le break-even")
+                    continue
+                record.update({"risk": abs(entry - stop), "originalVolume": float(position.volume)})
+            risk = float(record["risk"])
+            if not math.isfinite(risk) or risk <= 0:
+                outcomes.append(f"{symbol}: risque initial invalide")
                 continue
-            if record["tp1Done"] and _hit(side, price, rule["tpFinal"]):
-                amount = _close(terminal, position, side, float(position.volume))
-                outcomes.append(f"{symbol}: TP final atteint, {amount} fermé")
+            price = _price(terminal, position, side)
+            r_value = ((price - entry) / risk) if side == "BUY" else ((entry - price) / risk)
+            outcomes.append(f"{symbol}: {side} · {r_value:.2f}R · TP configurés {targets}")
+            for index, target_r in enumerate(targets):
+                if index in record["done"] or r_value < target_r:
+                    continue
+                requested = float(position.volume) if index == len(targets) - 1 else float(record["originalVolume"]) * percents[index] / 100
+                requested = min(requested, float(position.volume))
+                amount = _close(terminal, position, side, requested)
+                record["done"].append(index)
+                outcomes.append(f"{symbol}: TP{index + 1} atteint à {target_r:.2f}R, {amount} fermé")
                 _save_state(state)
+                break
         _save_state(state)
         for line in outcomes:
             output("TP_DEMO:", line)
