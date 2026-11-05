@@ -29,6 +29,7 @@ def snapshot_positions():
                 "side": side,
                 "volume": float(position.volume),
                 "openPrice": float(position.price_open),
+                "currentPrice": float(position.price_current),
                 "stopLoss": float(position.sl or 0),
             })
         return {"positions": snapshot}
