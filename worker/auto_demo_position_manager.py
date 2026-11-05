@@ -40,6 +40,13 @@ def _price(terminal, position, side):
 def _hit(side, price, target):
     return price >= target if side == "BUY" else price <= target
 
+def _rule_for(symbol):
+    normalized = str(symbol).upper()
+    for name, rule in RULES.items():
+        if normalized.startswith(name):
+            return name, rule
+    return None, None
+
 def _close(terminal, position, side, volume):
     info = terminal.symbol_info(position.symbol)
     if info is None:
@@ -92,18 +99,20 @@ def manage_positions(output=print):
                 del state[key]
         for position in positions:
             symbol = str(position.symbol).upper()
-            rule = RULES.get(symbol)
+            rule_name, rule = _rule_for(symbol)
             if not rule:
+                outcomes.append(f"{symbol}: aucune règle TP configurée")
                 continue
             side = "BUY" if position.type == terminal.POSITION_TYPE_BUY else "SELL"
             entry = float(position.price_open)
             if (side == "BUY" and not (rule["tp1"] > entry and rule["tpFinal"] > rule["tp1"])) or \
                (side == "SELL" and not (rule["tp1"] < entry and rule["tpFinal"] < rule["tp1"])):
-                outcomes.append(f"{position.ticket}: TP incompatibles avec le sens de la position, ignoré")
+                outcomes.append(f"{symbol}: TP incompatibles avec le sens {side}, ignoré")
                 continue
             key = str(position.ticket)
             record = state.setdefault(key, {"tp1Done": False})
             price = _price(terminal, position, side)
+            outcomes.append(f"{rule_name}: {side} · prix {price:.5f} · TP1 {rule['tp1']:.5f} · final {rule['tpFinal']:.5f}")
             if not record["tp1Done"] and _hit(side, price, rule["tp1"]):
                 original = float(position.volume)
                 amount = _close(terminal, position, side, original * rule["tp1Percent"] / 100)
