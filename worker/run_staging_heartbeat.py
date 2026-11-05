@@ -7,6 +7,7 @@ Stop safely with Ctrl+C.
 import time
 
 from report_demo_heartbeat import report
+from report_demo_positions import report_positions
 
 INTERVAL_SECONDS = 60
 
@@ -18,7 +19,8 @@ def run(send=report, sleep=time.sleep, output=print, interval=INTERVAL_SECONDS):
     while True:
         try:
             send()
-            output("Signal staging envoyé. Aucun ordre envoyé.")
+            report_positions()
+            output("Signal et positions lecture seule envoyés. Aucun ordre envoyé.")
         except RuntimeError as exc:
             output("Signal non envoyé :", str(exc))
         try:
