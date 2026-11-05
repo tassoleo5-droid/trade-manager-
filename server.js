@@ -179,6 +179,33 @@ app.get('/api/engine/status', authMiddleware, async (_req, res) => {
 // Demo onboarding is completely separate from the legacy MetaApi proxy.
 registerDemoAccountsApi(app, pool, authMiddleware);
 
+// Worker rules are scoped to a verified DEMO account. They never enable entry orders.
+app.get('/api/worker/rules', async (req, res) => {
+  const configuredToken = process.env.WORKER_INGEST_TOKEN;
+  if (!configuredToken || configuredToken.length < 32 ||
+      !verifyWorkerToken(req.get('x-myflowfx-worker-token'), configuredToken)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const login = String(req.get('x-myflowfx-account-login') || '');
+  const server = String(req.get('x-myflowfx-account-server') || '');
+  if (!/^[0-9]{1,20}$/.test(login) || server !== 'FusionMarkets-Demo') {
+    return res.status(400).json({ error: 'Invalid demo account identity' });
+  }
+  try {
+    const result = await pool.query(
+      `SELECT r.rules FROM demo_mt5_accounts a
+       LEFT JOIN user_rules r ON r.user_id=a.user_id
+       WHERE a.login=$1 AND a.server=$2 AND a.status='verified_demo'`,
+      [login, server]
+    );
+    if (!result.rowCount) return res.status(403).json({ error: 'No verified demo account configuration' });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ rules: result.rows[0].rules || DEFAULT_RULES });
+  } catch (_error) {
+    return res.status(503).json({ error: 'Demo rules temporarily unavailable' });
+  }
+});
+
 // Read-only worker telemetry. It intentionally has no order-routing capability.
 app.post('/api/worker/heartbeat', async (req, res) => {
   const configuredToken = process.env.WORKER_INGEST_TOKEN;
