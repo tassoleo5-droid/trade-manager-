@@ -11,7 +11,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 }
 const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
 const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
-const { validateHeartbeat, verifyWorkerToken } = require('./workerLink');
+const { validateHeartbeat, validatePositions, verifyWorkerToken } = require('./workerLink');
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -47,6 +47,13 @@ async function initDB() {
         last_seen TIMESTAMPTZ NOT NULL,
         demo BOOLEAN NOT NULL CHECK (demo),
         positions_count INTEGER NOT NULL CHECK (positions_count >= 0)
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS worker_position_snapshot (
+        id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
+        updated_at TIMESTAMPTZ NOT NULL,
+        positions JSONB NOT NULL
       )
     `);
     await initDemoDB(pool);
@@ -139,10 +146,12 @@ app.put('/api/rules', authMiddleware, async (req, res) => {
 
 app.get('/api/engine/status', authMiddleware, async (_req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT last_seen, demo, positions_count FROM worker_heartbeat WHERE id = TRUE'
-    );
-    const heartbeat = result.rows[0];
+    const [heartbeatResult, snapshotResult] = await Promise.all([
+      pool.query('SELECT last_seen, demo, positions_count FROM worker_heartbeat WHERE id = TRUE'),
+      pool.query('SELECT positions FROM worker_position_snapshot WHERE id = TRUE')
+    ]);
+    const heartbeat = heartbeatResult.rows[0];
+    const snapshot = snapshotResult.rows[0];
     const lastSeen = heartbeat?.last_seen ? new Date(heartbeat.last_seen) : null;
     const isOnline = Boolean(lastSeen && Date.now() - lastSeen.getTime() < 10 * 60 * 1000);
     res.set('Cache-Control', 'no-store');
@@ -151,6 +160,7 @@ app.get('/api/engine/status', authMiddleware, async (_req, res) => {
       lastSeen: lastSeen?.toISOString() || null,
       demo: heartbeat?.demo === true,
       positionsCount: heartbeat?.positions_count ?? null,
+      positions: Array.isArray(snapshot?.positions) ? snapshot.positions : [],
       liveTradingEnabled: false,
       message: isOnline
         ? 'Worker MT5 démo connecté en lecture seule.'
@@ -188,6 +198,30 @@ app.post('/api/worker/heartbeat', async (req, res) => {
     return res.status(202).json({ status: 'accepted', execution: 'disabled' });
   } catch (_error) {
     return res.status(503).json({ error: 'Worker status storage unavailable' });
+  }
+});
+
+app.post('/api/worker/positions', async (req, res) => {
+  const configuredToken = process.env.WORKER_INGEST_TOKEN;
+  if (!configuredToken || configuredToken.length < 32) {
+    return res.status(503).json({ error: 'Worker link not configured' });
+  }
+  if (!verifyWorkerToken(req.get('x-myflowfx-worker-token'), configuredToken)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const positions = validatePositions(req.body);
+  if (!positions) return res.status(400).json({ error: 'Invalid read-only positions' });
+  try {
+    await pool.query(
+      `INSERT INTO worker_position_snapshot (id, updated_at, positions)
+       VALUES (TRUE, NOW(), $1::jsonb)
+       ON CONFLICT (id) DO UPDATE SET updated_at = EXCLUDED.updated_at, positions = EXCLUDED.positions`,
+      [JSON.stringify(positions)]
+    );
+    res.set('Cache-Control', 'no-store');
+    return res.status(202).json({ status: 'accepted', execution: 'disabled' });
+  } catch (_error) {
+    return res.status(503).json({ error: 'Position storage unavailable' });
   }
 });
 
