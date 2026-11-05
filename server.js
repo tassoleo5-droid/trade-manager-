@@ -165,7 +165,7 @@ app.get('/api/engine/status', authMiddleware, async (_req, res) => {
 registerDemoAccountsApi(app, pool, authMiddleware);
 
 // Read-only worker telemetry. It intentionally has no order-routing capability.
-app.post('/api/worker/heartbeat', (req, res) => {
+app.post('/api/worker/heartbeat', async (req, res) => {
   const configuredToken = process.env.WORKER_INGEST_TOKEN;
   if (!configuredToken || configuredToken.length < 32) {
     return res.status(503).json({ error: 'Worker link not configured' });
