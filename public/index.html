@@ -369,10 +369,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
     <div class="settings-panel" id="panel-mt5">
       <div class="settings-msg" id="mt5-msg"></div>
       <div class="settings-card">
-        <div class="settings-card-title">Compte MetaTrader 5</div>
-        <div class="settings-card-sub">Changez de compte MT5 connecté ou déconnectez-le.</div>
-        <div class="settings-field"><label>Account ID MetaApi</label><input type="text" id="mt5-current-id" placeholder="33ab2a4a-d0b6-..." /></div>
-        <button class="settings-save" onclick="updateMT5()">Mettre à jour</button>
+        <div class="settings-card-title">Associer le worker MT5 démo</div>
+        <div class="settings-card-sub">Entre uniquement le numéro affiché dans MT5. Aucun mot de passe n’est demandé ni enregistré.</div>
+        <div class="settings-field"><label>Numéro de compte démo</label><input type="text" inputmode="numeric" id="demo-worker-login" placeholder="Ex. 556306" autocomplete="off" /></div>
+        <button class="settings-save" onclick="linkLocalDemoWorker()">Associer ce compte démo</button>
       </div>
     </div>
   </div>
@@ -616,19 +616,20 @@ function changePassword() {
   document.getElementById('pwd-confirm').value = '';
 }
 
-async function updateMT5() {
-  const account_id = document.getElementById('mt5-current-id').value.trim();
-  if (!account_id) return showSettingsMsg('mt5-msg', 'Entre un Account ID.');
+async function linkLocalDemoWorker() {
+  const login = document.getElementById('demo-worker-login').value.trim();
+  if (!/^[0-9]{1,20}$/.test(login)) {
+    return showSettingsMsg('mt5-msg', 'Entre uniquement le numéro de compte démo affiché dans MT5.');
+  }
   try {
-    const res = await fetch('/api/connect-mt5', {
+    const res = await fetch('/api/demo/link-local-worker', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ account_id })
+      body: JSON.stringify({ login })
     });
     const data = await res.json();
     if (!res.ok) return showSettingsMsg('mt5-msg', data.error || 'Erreur');
-    showSettingsMsg('mt5-msg', 'Compte MT5 mis à jour ✓', 'success');
-    states = {}; seenPositions = new Set();
+    showSettingsMsg('mt5-msg', 'Compte démo associé au worker ✓', 'success');
   } catch(e) { showSettingsMsg('mt5-msg', 'Erreur: ' + e.message); }
 }
 
