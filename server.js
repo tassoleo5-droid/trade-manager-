@@ -11,6 +11,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 }
 const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
 const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
+const { validateHeartbeat, verifyWorkerToken } = require('./workerLink');
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -136,6 +137,21 @@ app.get('/api/engine/status', authMiddleware, (req,res) => {
 
 // Demo onboarding is completely separate from the legacy MetaApi proxy.
 registerDemoAccountsApi(app, pool, authMiddleware);
+
+// Read-only worker telemetry. It intentionally has no order-routing capability.
+app.post('/api/worker/heartbeat', (req, res) => {
+  const configuredToken = process.env.WORKER_INGEST_TOKEN;
+  if (!configuredToken || configuredToken.length < 32) {
+    return res.status(503).json({ error: 'Worker link not configured' });
+  }
+  if (!verifyWorkerToken(req.get('x-myflowfx-worker-token'), configuredToken)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const payload = validateHeartbeat(req.body);
+  if (!payload) return res.status(400).json({ error: 'Invalid read-only heartbeat' });
+  res.set('Cache-Control', 'no-store');
+  return res.status(202).json({ status: 'accepted', execution: 'disabled' });
+});
 
 // Fail closed: no broker orders while the new Windows worker is being verified.
 app.post('/api/trade', authMiddleware, (_req,res) => {
