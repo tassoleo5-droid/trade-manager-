@@ -23,15 +23,16 @@ function validatePositions(body) {
   for (const position of body.positions) {
     if (!position || typeof position !== 'object' || Array.isArray(position)) return null;
     const keys = Object.keys(position).sort();
-    if (keys.join(',') !== 'id,openPrice,side,stopLoss,symbol,volume') return null;
+    if (keys.join(',') !== 'currentPrice,id,openPrice,side,stopLoss,symbol,volume') return null;
     if (typeof position.id !== 'string' || !/^[0-9]{1,20}$/.test(position.id)) return null;
     if (typeof position.symbol !== 'string' || !/^[A-Z0-9._-]{1,32}$/.test(position.symbol)) return null;
     if (position.side !== 'BUY' && position.side !== 'SELL') return null;
     if (!Number.isFinite(position.volume) || position.volume <= 0 || position.volume > 1000) return null;
     if (!Number.isFinite(position.openPrice) || position.openPrice <= 0) return null;
+    if (!Number.isFinite(position.currentPrice) || position.currentPrice <= 0) return null;
     if (!Number.isFinite(position.stopLoss) || position.stopLoss < 0) return null;
     positions.push({ id: position.id, symbol: position.symbol, side: position.side,
-      volume: position.volume, openPrice: position.openPrice, stopLoss: position.stopLoss });
+      volume: position.volume, openPrice: position.openPrice, currentPrice: position.currentPrice, stopLoss: position.stopLoss });
   }
   return positions;
 }
