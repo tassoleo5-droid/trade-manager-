@@ -61,8 +61,23 @@
       line.className = 'how-to';
       line.style.margin = '10px 0 0';
       const stop = position.stopLoss > 0 ? position.stopLoss : 'non défini';
+      let progress = 'R non calculable';
+      if (position.stopLoss > 0) {
+        const risk = Math.abs(position.openPrice - position.stopLoss);
+        const validStop = (position.side === 'BUY' && position.stopLoss < position.openPrice) ||
+          (position.side === 'SELL' && position.stopLoss > position.openPrice);
+        if (risk > 0 && validStop) {
+          const r = position.side === 'BUY'
+            ? (position.currentPrice - position.openPrice) / risk
+            : (position.openPrice - position.currentPrice) / risk;
+          progress = r.toFixed(2) + 'R · break-even à 1.00R (lecture seule)';
+        } else {
+          progress = 'Stop-loss non valide pour calculer R';
+        }
+      }
       line.textContent = position.symbol + ' · ' + position.side + ' · Volume ' +
-        position.volume + ' · Entrée ' + position.openPrice + ' · Stop-loss ' + stop;
+        position.volume + ' · Entrée ' + position.openPrice + ' · Prix actuel ' +
+        position.currentPrice + ' · Stop-loss ' + stop + ' · ' + progress;
       list.append(line);
     }
   }
