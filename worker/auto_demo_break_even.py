@@ -29,10 +29,12 @@ def _current_price(terminal, position, side):
     return price
 
 
-def protect_positions(output=print):
+def protect_positions(output=print, threshold=MINIMUM_R):
     """Move eligible DEMO positions to break-even. Returns a list of outcomes."""
     if not enabled():
         return ["automatisation désactivée"]
+    if not isinstance(threshold, (int, float)) or not math.isfinite(threshold) or threshold < 0.1:
+        raise RuntimeError("Seuil break-even invalide : aucune modification")
 
     if diagnose().get("status") != "demo_verified":
         raise RuntimeError("Vérification MT5 démo échouée : aucune modification")
@@ -74,8 +76,8 @@ def protect_positions(output=print):
             risk = abs(entry - stop)
             current = _current_price(terminal, position, side)
             r_value = (current - entry) / risk if side == "BUY" else (entry - current) / risk
-            if r_value < MINIMUM_R:
-                outcomes.append(f"{position.ticket}: {r_value:.2f}R, break-even non atteint")
+            if r_value < threshold:
+                outcomes.append(f"{position.ticket}: {r_value:.2f}R, break-even non atteint (seuil {threshold:.2f}R)")
                 continue
 
             result = terminal.order_send({
