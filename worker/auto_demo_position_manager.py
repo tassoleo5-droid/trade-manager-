@@ -84,6 +84,7 @@ def manage_positions(output=print):
         raise RuntimeError("Terminal MT5 indisponible : aucune clôture")
     state = _load_state()
     outcomes = []
+    output("TP_DEMO: analyse TP démarrée")
     try:
         account = terminal.account_info()
         if account is None or str(getattr(account, "server", "")).strip().casefold() != EXPECTED_SERVER.casefold():
@@ -93,6 +94,7 @@ def manage_positions(output=print):
         positions = terminal.positions_get()
         if positions is None:
             raise RuntimeError("Positions MT5 indisponibles : aucune clôture")
+        output(f"TP_DEMO: {len(positions)} position(s) MT5 détectée(s)")
         active = {str(p.ticket) for p in positions}
         for key in list(state):
             if key not in active:
