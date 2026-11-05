@@ -11,10 +11,12 @@ function verifyWorkerToken(received, expected) {
 function validateHeartbeat(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const keys = Object.keys(body).sort();
-  if (keys.join(',') !== 'automation,demo,positionsCount') return null;
-  if (body.demo !== true || typeof body.automation !== 'boolean' ||
+  const legacy = keys.join(',') === 'demo,positionsCount';
+  const current = keys.join(',') === 'automation,demo,positionsCount';
+  if (!legacy && !current) return null;
+  if (body.demo !== true || (current && typeof body.automation !== 'boolean') ||
       !Number.isSafeInteger(body.positionsCount) || body.positionsCount < 0) return null;
-  return { demo: true, automation: body.automation, positionsCount: body.positionsCount };
+  return { demo: true, automation: current ? body.automation : false, positionsCount: body.positionsCount };
 }
 
 function validatePositions(body) {
