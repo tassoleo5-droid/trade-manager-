@@ -1,6 +1,6 @@
 """MyFlowFX staging heartbeat from a Fusion Markets MT5 DEMO terminal.
 
-Sends only {demo: true, positionsCount: integer}. It never sends credentials,
+Sends only {demo: true, automation: boolean, positionsCount: integer}. It never sends credentials,
 account identifiers, prices, P&L, or order details, and cannot place trades.
 Configure MYFLOWFX_STAGING_URL and MYFLOWFX_WORKER_TOKEN in the VPS session.
 """
@@ -22,18 +22,21 @@ def settings(environ=os.environ):
         raise RuntimeError("MYFLOWFX_WORKER_TOKEN must be configured locally")
     return base_url, token
 
-def build_payload(check=diagnose):
+def automation_enabled(environ=os.environ):
+    return environ.get("MYFLOWFX_DEMO_AUTO_BREAK_EVEN") == "1"
+
+def build_payload(check=diagnose, environ=os.environ):
     result = check()
     if result.get("status") != "demo_verified":
         raise RuntimeError("MT5 demo verification failed; heartbeat not sent")
     count = result.get("positions_count")
     if type(count) is not int or count < 0:
         raise RuntimeError("MT5 returned an invalid position count")
-    return {"demo": True, "positionsCount": count}
+    return {"demo": True, "automation": automation_enabled(environ), "positionsCount": count}
 
 def report(opener=urllib.request.urlopen, environ=os.environ, check=diagnose):
     base_url, token = settings(environ)
-    payload = json.dumps(build_payload(check), separators=(",", ":")).encode("utf-8")
+    payload = json.dumps(build_payload(check, environ), separators=(",", ":")).encode("utf-8")
     request = urllib.request.Request(
         base_url + "/api/worker/heartbeat",
         data=payload,
