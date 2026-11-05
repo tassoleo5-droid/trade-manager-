@@ -62,6 +62,7 @@
       line.style.margin = '10px 0 0';
       const stop = position.stopLoss > 0 ? position.stopLoss : 'non défini';
       let progress = 'R non calculable';
+      let breakEven = 'Break-even indisponible';
       if (position.stopLoss > 0) {
         const risk = Math.abs(position.openPrice - position.stopLoss);
         const validStop = (position.side === 'BUY' && position.stopLoss < position.openPrice) ||
@@ -71,13 +72,21 @@
             ? (position.currentPrice - position.openPrice) / risk
             : (position.openPrice - position.currentPrice) / risk;
           progress = r.toFixed(2) + 'R · break-even à 1.00R (lecture seule)';
+          if (r >= 1) {
+            const tolerance = Math.max(0.00001, Math.abs(position.openPrice) * 0.000001);
+            breakEven = Math.abs(position.stopLoss - position.openPrice) <= tolerance
+              ? 'Break-even confirmé : stop-loss au prix d’entrée (lecture seule)'
+              : 'Break-even prêt : stop-loss conseillé au prix d’entrée ' + position.openPrice + ' (manuel, aucun ordre envoyé)';
+          } else {
+            breakEven = 'Break-even non atteint : aucun changement conseillé';
+          }
         } else {
           progress = 'Stop-loss non valide pour calculer R';
         }
       }
       line.textContent = position.symbol + ' · ' + position.side + ' · Volume ' +
         position.volume + ' · Entrée ' + position.openPrice + ' · Prix actuel ' +
-        position.currentPrice + ' · Stop-loss ' + stop + ' · ' + progress;
+        position.currentPrice + ' · Stop-loss ' + stop + ' · ' + progress + ' · ' + breakEven;
       list.append(line);
     }
   }
