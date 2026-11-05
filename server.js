@@ -41,6 +41,14 @@ async function initDB() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS worker_heartbeat (
+        id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
+        last_seen TIMESTAMPTZ NOT NULL,
+        demo BOOLEAN NOT NULL CHECK (demo),
+        positions_count INTEGER NOT NULL CHECK (positions_count >= 0)
+      )
+    `);
     await initDemoDB(pool);
     console.log('Database initialized ✓');
   } catch (e) {
@@ -129,10 +137,28 @@ app.put('/api/rules', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/engine/status', authMiddleware, (req,res) => {
-  res.set('Cache-Control','no-store');
-  res.json({status:'not_configured',liveTradingEnabled:false,
-    message:'Le moteur MT5 direct nécessite un worker Windows vérifié.'});
+app.get('/api/engine/status', authMiddleware, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT last_seen, demo, positions_count FROM worker_heartbeat WHERE id = TRUE'
+    );
+    const heartbeat = result.rows[0];
+    const lastSeen = heartbeat?.last_seen ? new Date(heartbeat.last_seen) : null;
+    const isOnline = Boolean(lastSeen && Date.now() - lastSeen.getTime() < 10 * 60 * 1000);
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      status: isOnline ? 'online' : 'offline',
+      lastSeen: lastSeen?.toISOString() || null,
+      demo: heartbeat?.demo === true,
+      positionsCount: heartbeat?.positions_count ?? null,
+      liveTradingEnabled: false,
+      message: isOnline
+        ? 'Worker MT5 démo connecté en lecture seule.'
+        : 'Aucun signal récent du worker MT5 démo.'
+    });
+  } catch (_error) {
+    return res.status(503).json({ error: 'Statut du worker temporairement indisponible' });
+  }
 });
 
 // Demo onboarding is completely separate from the legacy MetaApi proxy.
@@ -149,8 +175,20 @@ app.post('/api/worker/heartbeat', (req, res) => {
   }
   const payload = validateHeartbeat(req.body);
   if (!payload) return res.status(400).json({ error: 'Invalid read-only heartbeat' });
-  res.set('Cache-Control', 'no-store');
-  return res.status(202).json({ status: 'accepted', execution: 'disabled' });
+  try {
+    await pool.query(
+      `INSERT INTO worker_heartbeat (id, last_seen, demo, positions_count)
+       VALUES (TRUE, NOW(), $1, $2)
+       ON CONFLICT (id) DO UPDATE
+       SET last_seen = EXCLUDED.last_seen, demo = EXCLUDED.demo,
+           positions_count = EXCLUDED.positions_count`,
+      [payload.demo, payload.positionsCount]
+    );
+    res.set('Cache-Control', 'no-store');
+    return res.status(202).json({ status: 'accepted', execution: 'disabled' });
+  } catch (_error) {
+    return res.status(503).json({ error: 'Worker status storage unavailable' });
+  }
 });
 
 // Fail closed: no broker orders while the new Windows worker is being verified.
