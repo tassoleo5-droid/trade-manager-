@@ -40,9 +40,12 @@
       $('worker-state').className = 'metric-val ' + (online ? 'pos' : 'neg');
       $('worker-positions').textContent = Number.isInteger(data.positionsCount) ? String(data.positionsCount) : '—';
       $('worker-message').textContent = data.message;
+      const automationNote = data.demoAutomationActive === true
+        ? 'Démo : break-even automatique actif. Ouverture et clôture désactivées.'
+        : 'Lecture seule : aucun ordre autorisé.';
       $('worker-last').textContent = data.lastSeen
-        ? 'Dernier signal : ' + new Date(data.lastSeen).toLocaleString('fr-FR') + ' · Lecture seule : aucun ordre autorisé.'
-        : 'Aucun signal reçu. Lecture seule : aucun ordre autorisé.';
+        ? 'Dernier signal : ' + new Date(data.lastSeen).toLocaleString('fr-FR') + ' · ' + automationNote
+        : 'Aucun signal reçu. ' + automationNote;
       renderPositions(data.positions);
     } catch (_) {
       $('worker-message').textContent = 'Statut du worker indisponible.';
