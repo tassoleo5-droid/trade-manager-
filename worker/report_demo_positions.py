@@ -1,5 +1,6 @@
 """Send a minimal read-only snapshot of MT5 DEMO positions to MyFlowFX staging."""
 import json
+import math
 import urllib.error
 import urllib.request
 
@@ -23,13 +24,21 @@ def snapshot_positions():
         snapshot = []
         for position in positions:
             side = "BUY" if position.type == buy_type else "SELL"
+            current_price = float(getattr(position, "price_current", 0) or 0)
+            if not math.isfinite(current_price) or current_price <= 0:
+                tick = terminal.symbol_info_tick(position.symbol)
+                current_price = float(
+                    getattr(tick, "ask" if side == "BUY" else "bid", 0) or 0
+                )
+            if not math.isfinite(current_price) or current_price <= 0:
+                raise RuntimeError("Prix actuel indisponible; positions non envoyées")
             snapshot.append({
                 "id": str(position.ticket),
                 "symbol": str(position.symbol).upper(),
                 "side": side,
                 "volume": float(position.volume),
                 "openPrice": float(position.price_open),
-                "currentPrice": float(position.price_current),
+                "currentPrice": current_price,
                 "stopLoss": float(position.sl or 0),
             })
         return {"positions": snapshot}
