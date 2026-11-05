@@ -37,6 +37,7 @@ def diagnose(terminal: Optional[Any] = None) -> dict:
         return {
             "status": "demo_verified",
             "server": EXPECTED_SERVER,
+            "account_login": str(getattr(account, "login", "")),
             "positions_count": len(positions),
             "order_execution_enabled": False,
         }
