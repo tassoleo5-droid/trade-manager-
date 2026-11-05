@@ -31,7 +31,7 @@ def run(send=report, sleep=time.sleep, output=print, interval=INTERVAL_SECONDS):
                 manage_positions(output=output)
             send()
             report_positions()
-            output("Signal et positions envoyés. Ouverture et clôture désactivées.")
+            output("Signal et positions envoyés. Ouverture désactivée. " + ("TP démo automatique actif." if automatic_exits else "Clôture automatique désactivée."))
         except RuntimeError as exc:
             output("Cycle non terminé :", str(exc))
         try:
