@@ -429,6 +429,7 @@ async function handleAuth() {
     hasMT5 = !!data.mt5_account_id;
     settings.email = data.email;
     saveSettingsLocal();
+    await loadAlgoSettingsFromServer();
     transitionToApp();
   } catch(e) { showMsg('Erreur serveur'); }
 }
@@ -554,13 +555,43 @@ function checkTpTotal() {
   document.getElementById('tp-warning').style.display = total === 100 ? 'none' : 'block';
 }
 
-function saveAlgoSettings() {
+async function loadAlgoSettingsFromServer() {
+  if (!token) return;
+  try {
+    const res = await fetch('/api/rules', { headers: { 'Authorization': \`Bearer ${token}\` } });
+    const data = await res.json();
+    if (!res.ok || !data.rules) return;
+    settings = { ...settings, ...data.rules };
+    saveSettingsLocal();
+  } catch (_e) { /* Offline fallback: keep local display only. */ }
+}
+
+async function saveAlgoSettings() {
   const total = settings.tpPercents.reduce((a,b) => a+b, 0);
   if (settings.tpCount > 1 && total !== 100) {
     return showSettingsMsg('algo-msg', 'Le total des pourcentages doit être égal à 100%.');
   }
-  saveSettingsLocal();
-  showSettingsMsg('algo-msg', 'Réglages enregistrés ✓', 'success');
+  const rules = {
+    enabled: false,
+    beThreshold: settings.beThreshold,
+    tpCount: settings.tpCount,
+    tpPercents: settings.tpPercents,
+    tpTargetsR: Array.from({length: settings.tpCount}, (_, i) => i + 1)
+  };
+  try {
+    const res = await fetch('/api/rules', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer ${token}\` },
+      body: JSON.stringify(rules)
+    });
+    const data = await res.json();
+    if (!res.ok) return showSettingsMsg('algo-msg', data.error || 'Erreur d’enregistrement.');
+    settings = { ...settings, ...data.rules };
+    saveSettingsLocal();
+    showSettingsMsg('algo-msg', 'Réglages enregistrés pour ce compte démo ✓', 'success');
+  } catch (_e) {
+    showSettingsMsg('algo-msg', 'Connexion au staging indisponible.');
+  }
 }
 
 function saveAccount() {
