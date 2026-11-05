@@ -234,6 +234,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       <div class="connected-badge" id="mt5-connected" style="display:none">
         ✓ Compte MT5 connecté et actif
       </div>
+      <div class="mt5-card" id="worker-status-card" style="border-color:rgba(74,222,128,.25)">
+        <div class="mt5-title">Worker MT5 démo</div>
+        <div class="mt5-sub" id="worker-status-message">Vérification de la connexion sécurisée…</div>
+        <div class="metrics-grid">
+          <div class="metric"><div class="metric-lbl">Statut</div><div class="metric-val" id="worker-status-value">—</div></div>
+          <div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="worker-positions-value">—</div></div>
+        </div>
+        <div class="how-to" id="worker-last-seen" style="margin-top:14px;margin-bottom:0">Lecture seule : aucun ordre n'est autorisé.</div>
+      </div>
     </div>
 
     <div id="trading-section" style="display:none">
@@ -373,6 +382,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 let token = localStorage.getItem('tf_token') || '';
 let hasMT5 = false;
 let interval = null;
+let workerStatusInterval = null;
 let states = {};
 let logs = [];
 let currentTab = 'login';
@@ -436,6 +446,9 @@ function transitionToApp() {
 function showApp() {
   document.getElementById('auth-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  loadWorkerStatus();
+  clearInterval(workerStatusInterval);
+  workerStatusInterval = setInterval(loadWorkerStatus, 30000);
   if (hasMT5) {
     document.getElementById('mt5-connect-card').style.display = 'none';
     document.getElementById('mt5-connected').style.display = 'flex';
@@ -600,6 +613,7 @@ function saveSettingsLocal() {
 function logout() {
   localStorage.removeItem('tf_token');
   clearInterval(interval);
+  clearInterval(workerStatusInterval);
   token = ''; hasMT5 = false; states = {};
   document.body.style.transition = 'opacity 0.4s';
   document.body.style.opacity = '0';
@@ -619,7 +633,39 @@ function updateAlgoBtn() {
   else { btn.className = 'stop-btn paused'; btn.innerHTML = '▶ Relancer l\'algo'; }
 }
 
-async function connectMT5() {
+async async function loadWorkerStatus() {
+  if (!token) return;
+  const message = document.getElementById('worker-status-message');
+  const status = document.getElementById('worker-status-value');
+  const positions = document.getElementById('worker-positions-value');
+  const lastSeen = document.getElementById('worker-last-seen');
+  try {
+    const response = await fetch('/api/engine/status', {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Statut indisponible');
+    const online = data.status === 'online';
+    status.textContent = online ? 'Connecté' : 'Hors ligne';
+    status.className = 'metric-val ' + (online ? 'pos' : 'neg');
+    positions.textContent = Number.isInteger(data.positionsCount) ? data.positionsCount : '—';
+    message.textContent = data.message;
+    lastSeen.textContent = data.lastSeen
+      ? 'Dernier signal : ' + new Date(data.lastSeen).toLocaleString('fr-FR') + ' · Lecture seule : aucun ordre autorisé.'
+      : 'Aucun signal reçu. Lecture seule : aucun ordre autorisé.';
+    setDot(online ? 'green' : '', online ? 'Worker démo connecté' : 'Worker démo hors ligne');
+  } catch (_error) {
+    status.textContent = 'Indisponible';
+    status.className = 'metric-val neg';
+    positions.textContent = '—';
+    message.textContent = 'Impossible de récupérer le statut du worker.';
+    lastSeen.textContent = 'Lecture seule : aucun ordre autorisé.';
+    setDot('', 'Statut indisponible');
+  }
+}
+
+function connectMT5() {
   const account_id = document.getElementById('mt5-account-id').value.trim();
   if (!account_id) return alert('Entre ton Account ID MetaApi.');
   try {
