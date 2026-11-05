@@ -20,6 +20,7 @@
       '<div class="metrics-grid"><div class="metric"><div class="metric-lbl">Statut</div><div class="metric-val" id="worker-state">—</div></div>' +
       '<div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="worker-positions">—</div></div></div>' +
       '<div class="how-to" id="worker-last" style="margin-top:14px">Lecture seule : aucun ordre n’est autorisé.</div></div>' +
+      '<div class="mt5-card"><div class="mt5-title">Positions démo ouvertes</div><div id="position-list" class="mt5-sub">Chargement…</div></div>' +
       '<a class="btn-connect" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="/accounts">Gérer mes comptes et réglages</a>';
     loadStatus();
   }
@@ -42,8 +43,27 @@
       $('worker-last').textContent = data.lastSeen
         ? 'Dernier signal : ' + new Date(data.lastSeen).toLocaleString('fr-FR') + ' · Lecture seule : aucun ordre autorisé.'
         : 'Aucun signal reçu. Lecture seule : aucun ordre autorisé.';
+      renderPositions(data.positions);
     } catch (_) {
       $('worker-message').textContent = 'Statut du worker indisponible.';
+    }
+  }
+
+  function renderPositions(positions) {
+    const list = $('position-list');
+    list.replaceChildren();
+    if (!Array.isArray(positions) || positions.length === 0) {
+      list.textContent = 'Aucune position démo ouverte.';
+      return;
+    }
+    for (const position of positions) {
+      const line = document.createElement('div');
+      line.className = 'how-to';
+      line.style.margin = '10px 0 0';
+      const stop = position.stopLoss > 0 ? position.stopLoss : 'non défini';
+      line.textContent = position.symbol + ' · ' + position.side + ' · Volume ' +
+        position.volume + ' · Entrée ' + position.openPrice + ' · Stop-loss ' + stop;
+      list.append(line);
     }
   }
 
