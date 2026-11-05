@@ -3,6 +3,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const crypto = require('node:crypto');
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -109,6 +110,44 @@ app.post('/api/login', async (req, res) => {
   } catch(e) {
     console.error('Login error:', e.message);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Associate the currently logged-in local Fusion Markets demo worker with this staging profile.
+// It stores no password and cannot place an order.
+app.post('/api/demo/link-local-worker', authMiddleware, async (req, res) => {
+  const login = String(req.body?.login || '').trim();
+  const server = 'FusionMarkets-Demo';
+  if (!/^[0-9]{1,20}$/.test(login)) {
+    return res.status(400).json({ error: 'Numéro de compte démo invalide' });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const existing = await client.query(
+      'SELECT user_id FROM demo_mt5_accounts WHERE login=$1 AND server=$2 FOR UPDATE',
+      [login, server]
+    );
+    if (existing.rowCount && existing.rows[0].user_id !== req.user.id) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'Ce compte démo est déjà associé à un autre profil de staging' });
+    }
+    await client.query(
+      `INSERT INTO demo_mt5_accounts (id,user_id,login,server,label,password_enc,status,updated_at)
+       VALUES ($1,$2,$3,$4,$5,NULL,'verified_demo',NOW())
+       ON CONFLICT (user_id,login,server) DO UPDATE
+       SET label=EXCLUDED.label,status='verified_demo',last_error_code=NULL,updated_at=NOW()`,
+      [crypto.randomUUID(), req.user.id, login, server, 'Worker local démo']
+    );
+    await client.query('COMMIT');
+    res.set('Cache-Control', 'no-store');
+    return res.json({ status: 'verified_demo', login, server });
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Demo worker association failed:', e.message);
+    return res.status(500).json({ error: 'Association du compte démo impossible pour le moment' });
+  } finally {
+    client.release();
   }
 });
 
