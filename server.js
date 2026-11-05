@@ -192,7 +192,7 @@ app.post('/api/worker/heartbeat', async (req, res) => {
   if (!payload) return res.status(400).json({ error: 'Invalid read-only heartbeat' });
   try {
     await pool.query(
-      `INSERT INTO worker_heartbeat (id, last_seen, demo, positions_count)
+      `INSERT INTO worker_heartbeat (id, last_seen, demo, automation_active, positions_count)
        VALUES (TRUE, NOW(), $1, $2, $3)
        ON CONFLICT (id) DO UPDATE
        SET last_seen = EXCLUDED.last_seen, demo = EXCLUDED.demo,
