@@ -1,0 +1,43 @@
+const crypto = require('crypto');
+
+function verifyWorkerToken(received, expected) {
+  if (typeof received !== 'string' || typeof expected !== 'string') return false;
+  const receivedBytes = Buffer.from(received, 'utf8');
+  const expectedBytes = Buffer.from(expected, 'utf8');
+  return receivedBytes.length === expectedBytes.length &&
+    crypto.timingSafeEqual(receivedBytes, expectedBytes);
+}
+
+function validateHeartbeat(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  const keys = Object.keys(body).sort();
+  const legacy = keys.join(',') === 'demo,positionsCount';
+  const current = keys.join(',') === 'automation,demo,positionsCount';
+  if (!legacy && !current) return null;
+  if (body.demo !== true || (current && typeof body.automation !== 'boolean') ||
+      !Number.isSafeInteger(body.positionsCount) || body.positionsCount < 0) return null;
+  return { demo: true, automation: current ? body.automation : false, positionsCount: body.positionsCount };
+}
+
+function validatePositions(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body) || !Array.isArray(body.positions)) return null;
+  if (Object.keys(body).length !== 1 || body.positions.length > 50) return null;
+  const positions = [];
+  for (const position of body.positions) {
+    if (!position || typeof position !== 'object' || Array.isArray(position)) return null;
+    const keys = Object.keys(position).sort();
+    if (keys.join(',') !== 'currentPrice,id,openPrice,side,stopLoss,symbol,volume') return null;
+    if (typeof position.id !== 'string' || !/^[0-9]{1,20}$/.test(position.id)) return null;
+    if (typeof position.symbol !== 'string' || !/^[A-Z0-9._-]{1,32}$/.test(position.symbol)) return null;
+    if (position.side !== 'BUY' && position.side !== 'SELL') return null;
+    if (!Number.isFinite(position.volume) || position.volume <= 0 || position.volume > 1000) return null;
+    if (!Number.isFinite(position.openPrice) || position.openPrice <= 0) return null;
+    if (!Number.isFinite(position.currentPrice) || position.currentPrice <= 0) return null;
+    if (!Number.isFinite(position.stopLoss) || position.stopLoss < 0) return null;
+    positions.push({ id: position.id, symbol: position.symbol, side: position.side,
+      volume: position.volume, openPrice: position.openPrice, currentPrice: position.currentPrice, stopLoss: position.stopLoss });
+  }
+  return positions;
+}
+
+module.exports = { validateHeartbeat, validatePositions, verifyWorkerToken };

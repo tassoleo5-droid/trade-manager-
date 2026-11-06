@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeFlow</title>
+<title>MyFlowFX — Tableau de bord</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -200,7 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <div class="auth-wrap" id="auth-wrap">
   <div class="auth-card">
-    <div class="auth-logo">Trade<span>Flow</span></div>
+    <div class="auth-logo">MyFlow<span>FX</span></div>
     <div class="auth-sub">Gérez vos trades automatiquement</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
@@ -215,8 +215,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <div class="app" id="app">
   <div class="topbar">
-    <span class="topbar-logo" onclick="showDashboard()">Trade<span>Flow</span></span>
+    <span class="topbar-logo" onclick="showDashboard()">MyFlow<span>FX</span></span>
     <div class="topbar-right">
+      <a href="/accounts" style="color:#4ade80;text-decoration:none;font-size:13px;font-weight:600">Comptes MT5</a>
       <div class="status-pill"><span class="sdot" id="sdot"></span><span id="stext">Déconnecté</span></div>
       <button class="icon-btn" onclick="showSettings()" title="Réglages">⚙</button>
     </div>
@@ -225,22 +226,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
   <div id="dashboard-view">
     <div id="mt5-section">
       <div class="mt5-card" id="mt5-connect-card">
-        <div class="mt5-title">Connecter votre compte MT5</div>
-        <div class="mt5-sub">Pour connecter votre compte, récupérez votre Account ID sur <strong>app.metaapi.cloud</strong> dans la section MT Accounts.</div>
-        <div class="how-to">
-          <strong>Comment trouver votre Account ID :</strong><br>
-          1. Connectez-vous sur app.metaapi.cloud<br>
-          2. Cliquez sur <strong>MT Accounts</strong><br>
-          3. Copiez l'ID affiché sous votre compte
-        </div>
-        <div class="mt5-field">
-          <label>Account ID MetaApi</label>
-          <input type="text" id="mt5-account-id" placeholder="33ab2a4a-d0b6-498c-85e3-..." />
-        </div>
-        <button class="btn-connect" onclick="connectMT5()">Connecter</button>
+        <div class="mt5-title">Connecter MT5 à MyFlowFX</div>
+        <div class="mt5-sub">Renseignez votre identifiant MT5, votre serveur broker et votre mot de passe dans l'espace dédié. Aucune création de compte MetaApi n'est nécessaire.</div>
+        <div class="how-to"><strong>Phase de développement :</strong> seuls les comptes démo sont acceptés. Les connexions seront vérifiées par le moteur Windows avant toute activation de la gestion automatique.</div>
+        <a href="/accounts" class="btn-connect" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Gérer mes comptes MT5 →</a>
       </div>
       <div class="connected-badge" id="mt5-connected" style="display:none">
         ✓ Compte MT5 connecté et actif
+      </div>
+      <div class="mt5-card" id="worker-status-card" style="border-color:rgba(74,222,128,.25)">
+        <div class="mt5-title">Worker MT5 démo</div>
+        <div class="mt5-sub" id="worker-status-message">Vérification de la connexion sécurisée…</div>
+        <div class="metrics-grid">
+          <div class="metric"><div class="metric-lbl">Statut</div><div class="metric-val" id="worker-status-value">—</div></div>
+          <div class="metric"><div class="metric-lbl">Positions ouvertes</div><div class="metric-val" id="worker-positions-value">—</div></div>
+        </div>
+        <div class="how-to" id="worker-last-seen" style="margin-top:14px;margin-bottom:0">Lecture seule : aucun ordre n'est autorisé.</div>
       </div>
     </div>
 
@@ -368,10 +369,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
     <div class="settings-panel" id="panel-mt5">
       <div class="settings-msg" id="mt5-msg"></div>
       <div class="settings-card">
-        <div class="settings-card-title">Compte MetaTrader 5</div>
-        <div class="settings-card-sub">Changez de compte MT5 connecté ou déconnectez-le.</div>
-        <div class="settings-field"><label>Account ID MetaApi</label><input type="text" id="mt5-current-id" placeholder="33ab2a4a-d0b6-..." /></div>
-        <button class="settings-save" onclick="updateMT5()">Mettre à jour</button>
+        <div class="settings-card-title">Associer le worker MT5 démo</div>
+        <div class="settings-card-sub">Entre uniquement le numéro affiché dans MT5. Aucun mot de passe n’est demandé ni enregistré.</div>
+        <div class="settings-field"><label>Numéro de compte démo</label><input type="text" inputmode="numeric" id="demo-worker-login" placeholder="Ex. 556306" autocomplete="off" /></div>
+        <button class="settings-save" onclick="linkLocalDemoWorker()">Associer ce compte démo</button>
       </div>
     </div>
   </div>
@@ -381,6 +382,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 let token = localStorage.getItem('tf_token') || '';
 let hasMT5 = false;
 let interval = null;
+let workerStatusInterval = null;
 let states = {};
 let logs = [];
 let currentTab = 'login';
@@ -418,14 +420,16 @@ async function handleAuth() {
     const data = await res.json();
     if (!res.ok) return showMsg(data.error || 'Erreur');
     if (currentTab === 'register') {
-      showMsg('Compte créé ! Connecte-toi maintenant.', 'success');
-      switchTab('login'); return;
+      switchTab('login');
+      showMsg('Compte créé. Tu peux maintenant te connecter.', 'success');
+      return;
     }
     token = data.token;
     localStorage.setItem('tf_token', token);
     hasMT5 = !!data.mt5_account_id;
     settings.email = data.email;
     saveSettingsLocal();
+    await loadAlgoSettingsFromServer();
     transitionToApp();
   } catch(e) { showMsg('Erreur serveur'); }
 }
@@ -444,6 +448,9 @@ function transitionToApp() {
 function showApp() {
   document.getElementById('auth-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  loadWorkerStatus();
+  clearInterval(workerStatusInterval);
+  workerStatusInterval = setInterval(loadWorkerStatus, 30000);
   if (hasMT5) {
     document.getElementById('mt5-connect-card').style.display = 'none';
     document.getElementById('mt5-connected').style.display = 'flex';
@@ -548,13 +555,43 @@ function checkTpTotal() {
   document.getElementById('tp-warning').style.display = total === 100 ? 'none' : 'block';
 }
 
-function saveAlgoSettings() {
+async function loadAlgoSettingsFromServer() {
+  if (!token) return;
+  try {
+    const res = await fetch('/api/rules', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (!res.ok || !data.rules) return;
+    settings = { ...settings, ...data.rules };
+    saveSettingsLocal();
+  } catch (_e) { /* Offline fallback: keep local display only. */ }
+}
+
+async function saveAlgoSettings() {
   const total = settings.tpPercents.reduce((a,b) => a+b, 0);
   if (settings.tpCount > 1 && total !== 100) {
     return showSettingsMsg('algo-msg', 'Le total des pourcentages doit être égal à 100%.');
   }
-  saveSettingsLocal();
-  showSettingsMsg('algo-msg', 'Réglages enregistrés ✓', 'success');
+  const rules = {
+    enabled: false,
+    beThreshold: settings.beThreshold,
+    tpCount: settings.tpCount,
+    tpPercents: settings.tpPercents,
+    tpTargetsR: Array.from({length: settings.tpCount}, (_, i) => i + 1)
+  };
+  try {
+    const res = await fetch('/api/rules', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(rules)
+    });
+    const data = await res.json();
+    if (!res.ok) return showSettingsMsg('algo-msg', data.error || 'Erreur d’enregistrement.');
+    settings = { ...settings, ...data.rules };
+    saveSettingsLocal();
+    showSettingsMsg('algo-msg', 'Réglages enregistrés pour ce compte démo ✓', 'success');
+  } catch (_e) {
+    showSettingsMsg('algo-msg', 'Connexion au staging indisponible.');
+  }
 }
 
 function saveAccount() {
@@ -579,19 +616,20 @@ function changePassword() {
   document.getElementById('pwd-confirm').value = '';
 }
 
-async function updateMT5() {
-  const account_id = document.getElementById('mt5-current-id').value.trim();
-  if (!account_id) return showSettingsMsg('mt5-msg', 'Entre un Account ID.');
+async function linkLocalDemoWorker() {
+  const login = document.getElementById('demo-worker-login').value.trim();
+  if (!/^[0-9]{1,20}$/.test(login)) {
+    return showSettingsMsg('mt5-msg', 'Entre uniquement le numéro de compte démo affiché dans MT5.');
+  }
   try {
-    const res = await fetch('/api/connect-mt5', {
+    const res = await fetch('/api/demo/link-local-worker', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ account_id })
+      body: JSON.stringify({ login })
     });
     const data = await res.json();
     if (!res.ok) return showSettingsMsg('mt5-msg', data.error || 'Erreur');
-    showSettingsMsg('mt5-msg', 'Compte MT5 mis à jour ✓', 'success');
-    states = {}; seenPositions = new Set();
+    showSettingsMsg('mt5-msg', 'Compte démo associé au worker ✓', 'success');
   } catch(e) { showSettingsMsg('mt5-msg', 'Erreur: ' + e.message); }
 }
 
@@ -608,6 +646,7 @@ function saveSettingsLocal() {
 function logout() {
   localStorage.removeItem('tf_token');
   clearInterval(interval);
+  clearInterval(workerStatusInterval);
   token = ''; hasMT5 = false; states = {};
   document.body.style.transition = 'opacity 0.4s';
   document.body.style.opacity = '0';
@@ -627,7 +666,39 @@ function updateAlgoBtn() {
   else { btn.className = 'stop-btn paused'; btn.innerHTML = '▶ Relancer l\'algo'; }
 }
 
-async function connectMT5() {
+async async function loadWorkerStatus() {
+  if (!token) return;
+  const message = document.getElementById('worker-status-message');
+  const status = document.getElementById('worker-status-value');
+  const positions = document.getElementById('worker-positions-value');
+  const lastSeen = document.getElementById('worker-last-seen');
+  try {
+    const response = await fetch('/api/engine/status', {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Statut indisponible');
+    const online = data.status === 'online';
+    status.textContent = online ? 'Connecté' : 'Hors ligne';
+    status.className = 'metric-val ' + (online ? 'pos' : 'neg');
+    positions.textContent = Number.isInteger(data.positionsCount) ? data.positionsCount : '—';
+    message.textContent = data.message;
+    lastSeen.textContent = data.lastSeen
+      ? 'Dernier signal : ' + new Date(data.lastSeen).toLocaleString('fr-FR') + ' · Lecture seule : aucun ordre autorisé.'
+      : 'Aucun signal reçu. Lecture seule : aucun ordre autorisé.';
+    setDot(online ? 'green' : '', online ? 'Worker démo connecté' : 'Worker démo hors ligne');
+  } catch (_error) {
+    status.textContent = 'Indisponible';
+    status.className = 'metric-val neg';
+    positions.textContent = '—';
+    message.textContent = 'Impossible de récupérer le statut du worker.';
+    lastSeen.textContent = 'Lecture seule : aucun ordre autorisé.';
+    setDot('', 'Statut indisponible');
+  }
+}
+
+function connectMT5() {
   const account_id = document.getElementById('mt5-account-id').value.trim();
   if (!account_id) return alert('Entre ton Account ID MetaApi.');
   try {
@@ -973,5 +1044,6 @@ if (token) {
   }).catch(() => {});
 }
 </script>
+<script src="/authFallback.js"></script>
 </body>
 </html>

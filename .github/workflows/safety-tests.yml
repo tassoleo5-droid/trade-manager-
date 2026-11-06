@@ -1,0 +1,34 @@
+name: MyFlowFX safety tests
+
+on:
+  push:
+    branches:
+      - dev/tradeflow-security-v1
+  pull_request:
+
+jobs:
+  node-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: node --check server.js
+      - run: node --check tradeValidation.js
+      - run: node --check rulesValidation.js
+      - run: node --check demoAccountsApi.js
+      - run: node --check demoAccountValidation.js
+      - run: node --check credentialCrypto.js
+
+  mt5-connector-mocks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test read-only connector with mock terminal (no MT5 required)
+        working-directory: worker
+        run: python -m unittest discover -s tests -v
