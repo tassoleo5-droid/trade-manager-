@@ -2,7 +2,7 @@
 
 Rules are received from MyFlowFX staging for the verified demo account. It can
 only reduce or close existing Forex positions; it never sends entry orders.
-It is disabled unless MYFLOWFX_DEMO_AUTO_EXIT=1 is set locally.
+It is intentionally disabled in the current staging phase. TP rules may be read and validated, but the worker must not close positions automatically.
 """
 import json
 import math
@@ -18,7 +18,8 @@ FOREX_CURRENCIES = {
 }
 
 def enabled():
-    return os.environ.get("MYFLOWFX_DEMO_AUTO_EXIT") == "1"
+    """TP execution is not authorised in the current demo staging phase."""
+    return False
 
 def _load_state():
     try:
