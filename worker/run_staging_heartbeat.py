@@ -8,7 +8,7 @@ Stop safely with Ctrl+C.
 import time
 
 from auto_demo_break_even import enabled as break_even_enabled, protect_positions
-from auto_demo_position_manager import enabled as exit_enabled, manage_positions
+from auto_demo_position_manager import enabled as exit_enabled, manage_positions, preview_positions
 from report_demo_heartbeat import report
 from fetch_demo_rules import fetch as fetch_rules
 from report_demo_positions import report_positions
@@ -24,13 +24,15 @@ def run(send=report, sleep=time.sleep, output=print, interval=INTERVAL_SECONDS):
     output("MT5 : ouverture et clôture DÉSACTIVÉES")
     output("Break-even automatique démo :", "ACTIVÉ" if automatic_break_even else "DÉSACTIVÉ")
     output("TP automatique démo :", "ACTIVÉ" if automatic_exits else "DÉSACTIVÉ")
+    output("Simulation TP démo : ACTIVÉE (aucune clôture)")
     while True:
         try:
-            rules = fetch_rules() if (automatic_break_even or automatic_exits) else None
+            rules = fetch_rules()
             if automatic_exits:
                 manage_positions(rules, output=output)
             if automatic_break_even:
                 protect_positions(output=output, threshold=rules["beThreshold"])
+            preview_positions(rules, output=output)
             send()
             report_positions()
             output("Réglages du compte démo appliqués. Signal et positions envoyés. Ouverture désactivée. " + ("TP démo automatique actif." if automatic_exits else "Clôture automatique désactivée."))
