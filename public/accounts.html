@@ -36,21 +36,16 @@ button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;col
 <h2>Ajouter un compte démo</h2>
 <p class="small">Étape 1 : sauvegarde chiffrée. Étape 2 : vérification sur le serveur Windows lorsqu'il sera disponible. Les ordres automatiques restent désactivés.</p>
 <form id="connect-form" autocomplete="off">
-<label for="login">Identifiant du compte MT5</label>
+<label for="login">Identifiant du compte MT5 démo</label>
 <input id="login" name="login" inputmode="numeric" pattern="[0-9]+" placeholder="Ex. 12345678" required maxlength="20">
-<label for="server">Serveur du broker</label>
-<input id="server" name="server" list="suggested-mt5-servers" placeholder="Ex. FusionMarkets-Demo" required maxlength="128">
-<datalist id="suggested-mt5-servers"><option value="FusionMarkets-Demo"></option></datalist>
-<div class="small" style="margin-top:6px">Fusion Markets (démo) : <code>FusionMarkets-Demo</code>. Vérifiez le serveur exact dans les détails de votre compte.</div>
-<label for="password">Mot de passe de trading (compte démo uniquement)</label>
-<input id="password" name="password" type="password" required maxlength="512" autocomplete="new-password">
+<div class="small" style="margin-top:6px">Le serveur est fixé à <code>FusionMarkets-Demo</code> pour le worker local démo.</div>
 <label for="label">Nom du compte (facultatif)</label>
 <input id="label" name="label" placeholder="Mon compte de test" maxlength="80">
-<label class="agree"><input id="confirmDemoOnly" type="checkbox" required><span>Je confirme qu'il s'agit d'un <strong>compte démo</strong>, sans fonds réels. Je comprends qu'aucun ordre ne sera exécuté pendant cette phase de vérification.</span></label>
-<button id="submit" type="submit">Enregistrer mon compte démo</button>
+<label class="agree"><input id="confirmDemoOnly" type="checkbox" required><span>Je confirme qu'il s'agit d'un <strong>compte démo</strong>, sans fonds réels.</span></label>
+<button id="submit" type="submit">Associer ce compte démo</button>
 <div id="message" role="status" aria-live="polite"></div>
 </form>
-<div class="note">MyFlowFX ne te demandera jamais ton mot de passe dans un message ou sur GitHub. Renseigne-le uniquement dans un formulaire sécurisé après activation du service.</div>
+<div class="note">MyFlowFX ne demande pas le mot de passe de ton compte MT5 : le worker local déjà connecté à MT5 utilise sa session démo existante.</div>
 </section>
 <section class="card">
 <h2>Connexions enregistrées</h2>
@@ -118,12 +113,11 @@ async function loadAccounts(){
 }
 $('connect-form').addEventListener('submit',async(event)=>{
  event.preventDefault();$('submit').disabled=true;showMessage('');
- const payload={login:$('login').value.trim(),server:$('server').value.trim(),password:$('password').value,
-  label:$('label').value.trim(),confirmDemoOnly:$('confirmDemoOnly').checked};
+ const payload={login:$('login').value.trim()};
  try{
-  const result=await request('/api/demo/accounts',{method:'POST',body:JSON.stringify(payload)});
-  $('password').value='';$('login').value='';$('server').value='';$('label').value='';$('confirmDemoOnly').checked=false;
-  showMessage(result.message||'Compte ajouté',true);await loadAccounts();
+  const result=await request('/api/demo/link-local-worker',{method:'POST',body:JSON.stringify(payload)});
+  $('login').value='';$('label').value='';$('confirmDemoOnly').checked=false;
+  showMessage(result.status==='verified_demo' ? 'Compte démo associé au worker ✓' : 'Compte associé',true);await loadAccounts();
  }catch(e){showMessage(e.message);}finally{$('submit').disabled=false;}
 });
 function setCount(count,initial=false){
