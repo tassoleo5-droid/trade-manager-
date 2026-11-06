@@ -28,11 +28,13 @@ def run(send=report, sleep=time.sleep, output=print, interval=INTERVAL_SECONDS):
     while True:
         try:
             rules = fetch_rules()
+            # Capture the original SL risk before break-even can move the SL.
+            # TP simulation stays strictly read-only.
+            preview_positions(rules, output=output)
             if automatic_exits:
                 manage_positions(rules, output=output)
             if automatic_break_even:
                 protect_positions(output=output, threshold=rules["beThreshold"])
-            preview_positions(rules, output=output)
             send()
             report_positions()
             output("Réglages du compte démo appliqués. Signal et positions envoyés. Ouverture désactivée. " + ("TP démo automatique actif." if automatic_exits else "Clôture automatique désactivée."))
