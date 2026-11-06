@@ -71,6 +71,44 @@ def _is_forex(terminal, symbol):
 def _valid_initial_stop(side, entry, stop):
     return (side == "BUY" and stop < entry) or (side == "SELL" and stop > entry)
 
+def preview_positions(rules, output=print):
+    """Read-only TP check. It never calls order_send or changes MT5."""
+    if diagnose().get("status") != "demo_verified":
+        raise RuntimeError("Vérification MT5 démo échouée : simulation TP indisponible")
+    if not isinstance(rules, dict):
+        raise RuntimeError("Réglages du compte démo absents : simulation TP indisponible")
+    targets = rules["tpTargetsR"]
+    percents = rules["tpPercents"]
+    import MetaTrader5 as terminal
+    if not terminal.initialize():
+        raise RuntimeError("Terminal MT5 indisponible : simulation TP indisponible")
+    try:
+        positions = terminal.positions_get()
+        if positions is None:
+            raise RuntimeError("Positions MT5 indisponibles : simulation TP indisponible")
+        output(f"TP_SIMULATION: {len(positions)} position(s) MT5 détectée(s)")
+        for position in positions:
+            symbol = str(position.symbol).upper()
+            if not _is_forex(terminal, position.symbol):
+                output(f"TP_SIMULATION: {symbol}: hors Forex, ignoré")
+                continue
+            side = "BUY" if position.type == terminal.POSITION_TYPE_BUY else "SELL"
+            entry, stop = float(position.price_open), float(position.sl or 0)
+            if not _valid_initial_stop(side, entry, stop):
+                output(f"TP_SIMULATION: {symbol}: stop-loss initial requis")
+                continue
+            risk = abs(entry - stop)
+            price = _price(terminal, position, side)
+            r_value = ((price - entry) / risk) if side == "BUY" else ((entry - price) / risk)
+            reached = [
+                f"TP{i + 1} ({percents[i]}% à {target:.2f}R)"
+                for i, target in enumerate(targets) if r_value >= target
+            ]
+            status = ", ".join(reached) if reached else "aucun TP atteint"
+            output(f"TP_SIMULATION: {symbol}: {side} · {r_value:.2f}R · {status} · aucune clôture")
+    finally:
+        terminal.shutdown()
+
 def manage_positions(rules, output=print):
     if not enabled():
         return ["TP automatique désactivé"]
