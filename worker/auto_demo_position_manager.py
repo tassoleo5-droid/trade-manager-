@@ -12,6 +12,7 @@ from pathlib import Path
 from diagnose_fusion_demo import EXPECTED_SERVER, diagnose
 
 STATE_FILE = Path(__file__).with_name("demo_exit_state.json")
+PREVIEW_STATE_FILE = Path(__file__).with_name("demo_tp_preview_state.json")
 FOREX_CURRENCIES = {
     "AUD", "CAD", "CHF", "CNH", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF",
     "JPY", "MXN", "NOK", "NZD", "PLN", "SEK", "SGD", "TRY", "USD", "ZAR",
@@ -30,6 +31,16 @@ def _load_state():
 
 def _save_state(state):
     STATE_FILE.write_text(json.dumps(state, separators=(",", ":")), encoding="utf-8")
+
+def _load_preview_state():
+    try:
+        value = json.loads(PREVIEW_STATE_FILE.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def _save_preview_state(state):
+    PREVIEW_STATE_FILE.write_text(json.dumps(state, separators=(",", ":")), encoding="utf-8")
 
 def _price(terminal, position, side):
     tick = terminal.symbol_info_tick(position.symbol)
@@ -87,6 +98,11 @@ def preview_positions(rules, output=print):
         if positions is None:
             raise RuntimeError("Positions MT5 indisponibles : simulation TP indisponible")
         output(f"TP_SIMULATION: {len(positions)} position(s) MT5 détectée(s)")
+        state = _load_preview_state()
+        active = {str(position.ticket) for position in positions}
+        for key in list(state):
+            if key not in active:
+                del state[key]
         for position in positions:
             symbol = str(position.symbol).upper()
             if not _is_forex(terminal, position.symbol):
@@ -94,18 +110,29 @@ def preview_positions(rules, output=print):
                 continue
             side = "BUY" if position.type == terminal.POSITION_TYPE_BUY else "SELL"
             entry, stop = float(position.price_open), float(position.sl or 0)
-            if not _valid_initial_stop(side, entry, stop):
-                output(f"TP_SIMULATION: {symbol}: stop-loss initial requis")
-                continue
-            risk = abs(entry - stop)
+            key = str(position.ticket)
+            record = state.setdefault(key, {"announced": []})
+            if "risk" not in record:
+                if not _valid_initial_stop(side, entry, stop):
+                    output(f"TP_SIMULATION: {symbol}: risque initial indisponible pour cette position")
+                    continue
+                record["risk"] = abs(entry - stop)
+            risk = float(record["risk"])
             price = _price(terminal, position, side)
             r_value = ((price - entry) / risk) if side == "BUY" else ((entry - price) / risk)
-            reached = [
-                f"TP{i + 1} ({percents[i]}% à {target:.2f}R)"
-                for i, target in enumerate(targets) if r_value >= target
+            newly_reached = [
+                index for index, target in enumerate(targets)
+                if r_value >= target and index not in record["announced"]
             ]
-            status = ", ".join(reached) if reached else "aucun TP atteint"
-            output(f"TP_SIMULATION: {symbol}: {side} · {r_value:.2f}R · {status} · aucune clôture")
+            if newly_reached:
+                labels = ", ".join(
+                    f"TP{i + 1} ({percents[i]}% à {targets[i]:.2f}R)" for i in newly_reached
+                )
+                record["announced"].extend(newly_reached)
+                output(f"TP_SIMULATION: {symbol}: {side} · {r_value:.2f}R · {labels} atteint · aucune clôture")
+            else:
+                output(f"TP_SIMULATION: {symbol}: {side} · {r_value:.2f}R · aucun nouveau TP · aucune clôture")
+        _save_preview_state(state)
     finally:
         terminal.shutdown()
 
