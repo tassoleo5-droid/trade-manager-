@@ -2,7 +2,7 @@
 
 It always sends read-only telemetry. Automatic break-even is optional and runs
 only when MYFLOWFX_DEMO_AUTO_BREAK_EVEN=1 is set locally on the Windows VPS.
-It never opens or closes positions.
+It never opens positions. Demo TP closure requires explicit local activation.
 Stop safely with Ctrl+C.
 """
 import os
@@ -40,7 +40,7 @@ def run(send=report, sleep=time.sleep, output=print, interval=None):
     automatic_exits = exit_enabled()
     output("MyFlowFX staging — surveillance continue")
     output(f"Fréquence de surveillance : toutes les {interval} secondes")
-    output("MT5 : ouverture et clôture DÉSACTIVÉES")
+    output("MT5 : ouverture désactivée ; clôture démo " + ("activée" if automatic_exits else "désactivée"))
     output("Break-even automatique démo :", "ACTIVÉ" if automatic_break_even else "DÉSACTIVÉ")
     output("TP automatique démo :", "ACTIVÉ" if automatic_exits else "DÉSACTIVÉ")
     output("Simulation TP démo : ACTIVÉE (aucune clôture)")
