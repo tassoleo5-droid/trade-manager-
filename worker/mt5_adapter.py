@@ -32,7 +32,7 @@ class AccountConfig:
         return cls(login=int(raw), server=server, password=password)
 
 
-def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None) -> dict:
+def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None, terminal_path: Optional[str] = None) -> dict:
     """Read-only connectivity test; does not submit or modify trades."""
     if terminal is None:
         try:
@@ -40,7 +40,10 @@ def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None) ->
         except ImportError as exc:
             raise RuntimeError("Install MetaTrader5 package on Windows") from exc
 
-    if not terminal.initialize(login=config.login, password=config.password, server=config.server, timeout=30000):
+    options = dict(login=config.login, password=config.password, server=config.server, timeout=30000)
+    if terminal_path:
+        options.update(path=terminal_path, portable=True)
+    if not terminal.initialize(**options):
         # Do not log terminal errors verbatim as they can include environment data.
         raise RuntimeError("MT5 terminal initialization failed; check broker login, server, or Windows terminal")
     try:
@@ -49,6 +52,8 @@ def inspect_connection(config: AccountConfig, terminal: Optional[Any] = None) ->
             raise RuntimeError("MT5 connected but account info unavailable")
         if int(account.login) != config.login:
             raise RuntimeError("MT5 returned a different account login")
+        if str(account.server).casefold() != config.server.casefold():
+            raise RuntimeError("MT5 returned a different account server")
         demo_mode = getattr(terminal, "ACCOUNT_TRADE_MODE_DEMO", None)
         if not isinstance(demo_mode, int) or getattr(account, "trade_mode", None) != demo_mode:
             raise LiveAccountError("Only verified demo MT5 accounts may be used")
