@@ -5,6 +5,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
 
 const app = express();
 const META_API = 'https://mt-client-api-v1.london.agiliumtrade.ai';
@@ -32,6 +33,7 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    await initDemoDB(pool);
     console.log('Database initialized ✓');
   } catch (e) {
     console.error('Database init error:', e.message);
@@ -48,6 +50,8 @@ function authMiddleware(req, res, next) {
   try { req.user = jwt.verify(token, JWT_SECRET); next(); }
   catch(e) { res.status(401).json({ error: 'Token invalide' }); }
 }
+
+registerDemoAccountsApi(app, pool, authMiddleware);
 
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
