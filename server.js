@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const { initDemoDB, registerDemoAccountsApi } = require('./demoAccountsApi');
+const { DEFAULT_RULES, validateRules } = require('./rulesValidation');
 
 const app = express();
 const META_API = 'https://mt-client-api-v1.london.agiliumtrade.ai';
@@ -34,6 +35,7 @@ async function initDB() {
       )
     `);
     await initDemoDB(pool);
+    await pool.query(`CREATE TABLE IF NOT EXISTS user_rules (user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, rules JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
     console.log('Database initialized ✓');
   } catch (e) {
     console.error('Database init error:', e.message);
@@ -52,6 +54,15 @@ function authMiddleware(req, res, next) {
 }
 
 registerDemoAccountsApi(app, pool, authMiddleware);
+app.get('/api/rules', authMiddleware, async (req,res) => {
+  try { const result=await pool.query('SELECT rules FROM user_rules WHERE user_id=$1',[req.user.id]); res.set('Cache-Control','no-store'); res.json({rules:result.rows[0]?.rules || DEFAULT_RULES,engine:'not_configured'}); }
+  catch(_e) { res.status(503).json({error:'Réglages indisponibles'}); }
+});
+app.put('/api/rules', authMiddleware, async (req,res) => {
+  const checked=validateRules(req.body); if(checked.error) return res.status(400).json({error:checked.error});
+  try { await pool.query('INSERT INTO user_rules (user_id,rules) VALUES ($1,$2::jsonb) ON CONFLICT (user_id) DO UPDATE SET rules=EXCLUDED.rules,updated_at=NOW()',[req.user.id,JSON.stringify(checked.rules)]); res.set('Cache-Control','no-store'); res.json({rules:checked.rules,engine:'not_configured'}); }
+  catch(_e) { res.status(503).json({error:'Enregistrement indisponible'}); }
+});
 
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
