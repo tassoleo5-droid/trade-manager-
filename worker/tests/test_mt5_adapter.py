@@ -38,6 +38,17 @@ class TestAccountConfig(unittest.TestCase):
             inspect_connection(AccountConfig(123456, "Demo-01", "secret"), mt5)
         mt5.shutdown.assert_called_once()
 
+    def test_explicit_terminal_uses_portable_mode(self):
+        mt5 = Mock()
+        mt5.initialize.return_value = True
+        mt5.ACCOUNT_TRADE_MODE_DEMO = 0
+        mt5.account_info.return_value = SimpleNamespace(login=123456, server="Demo-01", currency="USD", trade_mode=0)
+        mt5.positions_get.return_value = []
+        inspect_connection(AccountConfig(123456, "Demo-01", "secret"), mt5, terminal_path=r"C:\\MyFlowFX-Test\\terminal64.exe")
+        self.assertTrue(mt5.initialize.call_args.kwargs["portable"])
+        self.assertIn("MyFlowFX-Test", mt5.initialize.call_args.kwargs["path"])
+        mt5.order_send.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
