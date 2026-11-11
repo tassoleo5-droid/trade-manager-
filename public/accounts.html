@@ -48,6 +48,23 @@ button:disabled{opacity:.6;cursor:not-allowed}.danger{background:transparent;col
 <div class="note">MyFlowFX ne demande pas le mot de passe de ton compte MT5 : le worker local déjà connecté à MT5 utilise sa session démo existante.</div>
 </section>
 <section class="card">
+<h2>Connecter un nouveau compte démo</h2>
+<p class="small">Renseigne les informations de ton compte MT5 démo pour demander sa vérification. La gestion automatique n'est pas activée par cette étape.</p>
+<form id="direct-connect-form" autocomplete="off">
+<label for="direct-login">Identifiant MT5</label>
+<input id="direct-login" inputmode="numeric" pattern="[0-9]+" maxlength="20" required>
+<label for="direct-server">Serveur du broker</label>
+<input id="direct-server" maxlength="128" required>
+<label for="direct-password">Mot de passe MT5 démo</label>
+<input id="direct-password" type="password" autocomplete="new-password" required>
+<label for="direct-label">Nom du compte (facultatif)</label>
+<input id="direct-label" maxlength="80">
+<label class="agree"><input id="direct-confirm" type="checkbox" required><span>Je confirme qu'il s'agit d'un compte démo.</span></label>
+<button id="direct-submit" type="submit">Connecter mon compte démo</button>
+<div id="direct-message" role="status" aria-live="polite"></div>
+</form>
+</section>
+<section class="card">
 <h2>Connexions enregistrées</h2>
 <p class="small">Le statut « Vérifié » signifie seulement que les identifiants correspondent à un compte démo ; il ne signifie pas que la gestion automatique est active.</p>
 <div id="accounts" class="skeleton">Chargement…</div>
@@ -86,6 +103,15 @@ async function request(url,options={}){
  return result;
 }
 const names={pending:'En attente du serveur',verified_demo:'Compte démo vérifié',rejected_live:'Refusé : compte réel',failed:'Vérification échouée'};
+$('direct-connect-form').addEventListener('submit',async event=>{
+ event.preventDefault();$('direct-submit').disabled=true;$('direct-message').textContent='';
+ const payload={login:$('direct-login').value.trim(),server:$('direct-server').value.trim(),password:$('direct-password').value,label:$('direct-label').value.trim(),confirmDemoOnly:$('direct-confirm').checked};
+ try{
+  const result=await request('/api/demo/accounts',{method:'POST',body:JSON.stringify(payload)});
+  $('direct-connect-form').reset();$('direct-message').textContent=result.message;await loadAccounts();
+ }catch(e){$('direct-message').textContent=e.message;}
+ finally{payload.password='';$('direct-password').value='';$('direct-submit').disabled=false;}
+});
 async function loadAccounts(){
  const box=$('accounts');
  try{
