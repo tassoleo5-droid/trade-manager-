@@ -4,9 +4,11 @@ For a centrally managed Windows host with the MetaTrader 5 terminal installed.
 This agent is read-only and cannot place, modify, or close trades.
 
 Only connect to a trusted HTTPS Railway deployment. Set:
-MYFLOWFX_API_URL, MYFLOWFX_WORKER_TOKEN, MYFLOWFX_WORKER_ID.
+MYFLOWFX_API_URL, MYFLOWFX_WORKER_TOKEN, MYFLOWFX_WORKER_ID and
+MYFLOWFX_MT5_TERMINAL_PATH (a dedicated portable MT5 installation).
 """
 import json
+import ntpath
 import os
 import time
 import urllib.error
@@ -57,15 +59,15 @@ def api_post(origin, route, token, worker_id, payload):
         raise RuntimeError("Worker API returned HTTP " + str(e.code)) from None
 
 
-def verify_job(job, terminal=None):
+def verify_job(job, terminal=None, terminal_path=None):
     """No order_send calls. Only inspect a DEMO account and its open positions."""
-    config = AccountConfig(
-        login=int(job["login"]),
-        server=job["server"],
-        password=job["password"],
-    )
     try:
-        state = inspect_connection(config, terminal)
+        config = AccountConfig(
+            login=int(job["login"]),
+            server=job["server"],
+            password=job["password"],
+        )
+        state = inspect_connection(config, terminal, terminal_path=terminal_path)
         if not state["demo_verified"]:
             return {
                 "jobId": job["jobId"], "result": "rejected_live"
@@ -83,8 +85,14 @@ def verify_job(job, terminal=None):
         return {"jobId": job.get("jobId"), "result": "failed", "errorCode": "UNKNOWN"}
 
 
-def run_forever(api_url, token, worker_id):
+def validate_terminal_path(path):
+    if not isinstance(path, str) or not ntpath.isabs(path) or ntpath.basename(path).lower() != "terminal64.exe":
+        raise ValueError("Dedicated MT5 terminal64.exe path required")
+
+
+def run_forever(api_url, token, worker_id, terminal_path):
     validate_agent_config(api_url, token, worker_id)
+    validate_terminal_path(terminal_path)
     print("MyFlowFX DEMO verification worker started (READ ONLY)")
     while True:
         try:
@@ -92,7 +100,7 @@ def run_forever(api_url, token, worker_id):
             if job:
                 # The broker password is never displayed, written to disk, or put
                 # in process command-line arguments.
-                result = verify_job(job)
+                result = verify_job(job, terminal_path=terminal_path)
                 api_post(api_url, "/api/demo/worker/result", token, worker_id, result)
                 del job
         except (RuntimeError, OSError, ValueError) as exc:
@@ -105,4 +113,5 @@ if __name__ == "__main__":
         os.environ.get("MYFLOWFX_API_URL", ""),
         os.environ.get("MYFLOWFX_WORKER_TOKEN", ""),
         os.environ.get("MYFLOWFX_WORKER_ID", "demo-worker-01"),
+        os.environ.get("MYFLOWFX_MT5_TERMINAL_PATH", ""),
     )
