@@ -666,7 +666,7 @@ function updateAlgoBtn() {
   else { btn.className = 'stop-btn paused'; btn.innerHTML = '▶ Relancer l\'algo'; }
 }
 
-async async function loadWorkerStatus() {
+async function loadWorkerStatus() {
   if (!token) return;
   const message = document.getElementById('worker-status-message');
   const status = document.getElementById('worker-status-value');
@@ -698,7 +698,7 @@ async async function loadWorkerStatus() {
   }
 }
 
-function connectMT5() {
+async function connectMT5() {
   const account_id = document.getElementById('mt5-account-id').value.trim();
   if (!account_id) return alert('Entre ton Account ID MetaApi.');
   try {
