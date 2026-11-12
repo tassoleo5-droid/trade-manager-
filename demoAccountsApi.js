@@ -248,6 +248,21 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     }
   });
 
+  // Rules are read-only and are returned only for a uniquely verified demo account.
+  app.post('/api/demo/worker/rules',rejectWorker,async(req,res)=>{
+    const {login,server}=req.body||{};
+    if(typeof login!=='string'||!/^\d{1,20}$/.test(login)||typeof server!=='string'||server.length<1||server.length>128||/[\x00-\x1f]/.test(server)) return res.status(400).json({error:'Compte invalide'});
+    try {
+      const accounts=await pool.query("SELECT id,user_id FROM demo_mt5_accounts WHERE login=$1 AND lower(server)=lower($2) AND status='verified_demo' LIMIT 2",[login,server]);
+      if(accounts.rowCount!==1) return res.status(409).json({error:'Compte démo vérifié introuvable ou ambigu'});
+      const data=await pool.query('SELECT rules FROM user_rules WHERE user_id=$1',[accounts.rows[0].user_id]);
+      const {DEFAULT_RULES,validateRules}=require('./rulesValidation');
+      const checked=validateRules(data.rows[0]?.rules||DEFAULT_RULES);
+      if(checked.error) return res.status(409).json({error:'Réglages invalides'});
+      res.set('Cache-Control','no-store');return res.json({accountId:accounts.rows[0].id,login,server,rules:checked.rules,executionEnabled:false});
+    } catch(_e) {return res.status(503).json({error:'Réglages indisponibles'});}
+  });
+
   app.get('/api/demo/engine/status',authMiddleware,noStore,(_req,res)=>{
     res.json({status:'verification_only',autoTradingEnabled:false,
       note:'Seuls les comptes DEMO sont acceptés. Aucun ordre n’est exécuté.'});
