@@ -22,6 +22,7 @@ async function initDemoDB(pool) {
       UNIQUE (user_id,login,server)
     )
   `);
+  await pool.query(`ALTER TABLE demo_mt5_accounts ADD COLUMN IF NOT EXISTS management_enabled BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS demo_mt5_jobs (
       id UUID PRIMARY KEY,
@@ -60,7 +61,7 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
   app.get('/api/demo/accounts',authMiddleware,noStore,async(req,res)=>{
     try {
       const r=await pool.query(
-        `SELECT id,login,server,label,status,last_error_code,created_at,updated_at
+        `SELECT id,login,server,label,status,last_error_code,management_enabled,created_at,updated_at
           FROM demo_mt5_accounts WHERE user_id=$1 ORDER BY created_at DESC`,[req.user.id]);
       res.json({accounts:r.rows,executionEnabled:false});
     } catch(_e) {
@@ -104,6 +105,15 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     } finally {
       if(client) client.release();
     }
+  });
+
+  app.post('/api/demo/accounts/:id/management',authMiddleware,noStore,async(req,res)=>{
+    if(!validUuid(req.params.id)||typeof req.body?.enabled!=='boolean') return res.status(400).json({error:'Demande invalide'});
+    try {
+      const result=await pool.query("UPDATE demo_mt5_accounts SET management_enabled=$3,updated_at=NOW() WHERE id=$1 AND user_id=$2 AND status='verified_demo' RETURNING management_enabled",[req.params.id,req.user.id,req.body.enabled]);
+      if(!result.rowCount) return res.status(409).json({error:'Compte démo non vérifié'});
+      return res.json({managementEnabled:result.rows[0].management_enabled});
+    } catch(_e) {return res.status(503).json({error:'Gestion indisponible'});}
   });
 
   app.post('/api/demo/accounts/:id/retry',authMiddleware,noStore,async(req,res)=>{
@@ -253,13 +263,13 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     const {login,server}=req.body||{};
     if(typeof login!=='string'||!/^\d{1,20}$/.test(login)||typeof server!=='string'||server.length<1||server.length>128||/[\x00-\x1f]/.test(server)) return res.status(400).json({error:'Compte invalide'});
     try {
-      const accounts=await pool.query("SELECT id,user_id FROM demo_mt5_accounts WHERE login=$1 AND lower(server)=lower($2) AND status='verified_demo' LIMIT 2",[login,server]);
+      const accounts=await pool.query("SELECT id,user_id,management_enabled FROM demo_mt5_accounts WHERE login=$1 AND lower(server)=lower($2) AND status='verified_demo' LIMIT 2",[login,server]);
       if(accounts.rowCount!==1) return res.status(409).json({error:'Compte démo vérifié introuvable ou ambigu'});
       const data=await pool.query('SELECT rules FROM user_rules WHERE user_id=$1',[accounts.rows[0].user_id]);
       const {DEFAULT_RULES,validateRules}=require('./rulesValidation');
       const checked=validateRules(data.rows[0]?.rules||DEFAULT_RULES);
       if(checked.error) return res.status(409).json({error:'Réglages invalides'});
-      res.set('Cache-Control','no-store');return res.json({accountId:accounts.rows[0].id,login,server,rules:checked.rules,executionEnabled:false});
+      res.set('Cache-Control','no-store');return res.json({accountId:accounts.rows[0].id,login,server,rules:checked.rules,executionEnabled:accounts.rows[0].management_enabled === true});
     } catch(_e) {return res.status(503).json({error:'Réglages indisponibles'});}
   });
 
