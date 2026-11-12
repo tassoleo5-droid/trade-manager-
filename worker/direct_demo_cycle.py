@@ -17,7 +17,7 @@ def run_cycle(mt5, terminal_path, api_post, origin, token, worker_id, state_path
     if identity["login"] != allowed_login:
         raise RuntimeError("Compte connecté différent du compte autorisé")
     response = api_post(origin, "/api/demo/worker/rules", token, worker_id, identity)
-    rules = validate_rules_response(response, identity)
+    rules = validate_rules_response(response, identity, require_execution=True)
     if not mt5.initialize(path=terminal_path, portable=True, timeout=30000):
         raise RuntimeError("Terminal MT5 indisponible")
     try:
