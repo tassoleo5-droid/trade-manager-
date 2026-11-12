@@ -21,7 +21,7 @@ class CycleTests(unittest.TestCase):
     def call(self, terminal, post):
         return run_cycle(terminal,r"C:\MT5\terminal64.exe",post,"https://example.test","token","worker",self.state)
     def response(self, origin, path, token, worker, identity):
-        return {"login":identity["login"],"server":identity["server"],"rules":RULES,"executionEnabled":False}
+        return {"login":identity["login"],"server":identity["server"],"rules":RULES,"executionEnabled":True}
     @patch.dict(os.environ,{},clear=True)
     def test_disabled_never_queries_terminal_or_api(self):
         def forbidden(*args):
@@ -48,6 +48,14 @@ class CycleTests(unittest.TestCase):
             raise RuntimeError("unavailable")
         with self.assertRaises(RuntimeError):
             self.call(m,unavailable)
+        self.assertEqual(m.orders,[])
+    @patch.dict(os.environ,{"MYFLOWFX_DEMO_AUTO_EXIT":"1","MYFLOWFX_DEMO_MANAGE_ACCOUNT":"12345"},clear=True)
+    def test_site_pause_stops_all_orders(self):
+        m=Terminal()
+        def paused(origin,path,token,worker,identity):
+            return {"login":identity["login"],"server":identity["server"],"rules":RULES,"executionEnabled":False}
+        with self.assertRaises(RuntimeError):
+            self.call(m,paused)
         self.assertEqual(m.orders,[])
 
 if __name__=="__main__":
