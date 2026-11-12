@@ -25,15 +25,15 @@ class FakeMT5:
         self.price=1.101
         self.positions=[NS(type=0,price_open=1.1,sl=1.099,volume=1.,tp=0.,ticket=10,symbol="EURUSD")]
     def account_info(self):
-        return NS(login=12345,server="Broker-Demo",trade_mode=self.mode)
+        return NS(login=12345,server="Broker-Demo",trade_mode=self.mode,trade_allowed=True)
     def terminal_info(self):
-        return NS(connected=True)
+        return NS(connected=True,trade_allowed=True)
     def positions_get(self, ticket=None):
         return [p for p in self.positions if ticket is None or p.ticket==ticket]
     def symbol_info_tick(self,symbol):
         return NS(bid=self.price,ask=self.price,time=time.time())
     def symbol_info(self,symbol):
-        return NS(volume_step=.01,volume_min=.01)
+        return NS(volume_step=.01,volume_min=.01,currency_base="EUR",currency_profit="USD")
     def order_send(self, req):
         self.orders.append(req)
         p=self.positions[0]
@@ -134,6 +134,17 @@ class ManagerTests(unittest.TestCase):
         m=FakeMT5()
         m.positions[0].sl=0
         self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.orders,[])
+    def test_non_forex_is_ignored(self):
+        m=FakeMT5()
+        m.symbol_info=lambda symbol:NS(volume_step=.01,volume_min=.01,currency_base="XAU",currency_profit="USD")
+        self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.orders,[])
+    def test_mt5_trading_disabled_never_sends(self):
+        m=FakeMT5()
+        m.terminal_info=lambda:NS(connected=True,trade_allowed=False)
+        with self.assertRaises(RuntimeError):
+            self.run_cycle(m,auto_be=True,auto_tp=True)
         self.assertEqual(m.orders,[])
 
 if __name__=="__main__":
