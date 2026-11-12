@@ -16,6 +16,7 @@ import urllib.parse
 import urllib.request
 
 from mt5_adapter import AccountConfig, inspect_connection, LiveAccountError
+from sync_demo_rules import fetch_rules
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     """Never follow redirects with worker authorization or broker credentials."""
@@ -94,6 +95,8 @@ def run_forever(api_url, token, worker_id, terminal_path):
     validate_agent_config(api_url, token, worker_id)
     validate_terminal_path(terminal_path)
     print("MyFlowFX DEMO verification worker started (READ ONLY)")
+    last_rules = None
+    next_sync = 0
     while True:
         try:
             job = api_post(api_url, "/api/demo/worker/claim", token, worker_id, {})
@@ -103,7 +106,15 @@ def run_forever(api_url, token, worker_id, terminal_path):
                 result = verify_job(job, terminal_path=terminal_path)
                 api_post(api_url, "/api/demo/worker/result", token, worker_id, result)
                 del job
-        except (RuntimeError, OSError, ValueError) as exc:
+            if time.monotonic() >= next_sync:
+                # This connection is read-only. No orders or position changes.
+                next_sync = time.monotonic() + 30
+                import MetaTrader5 as terminal
+                rules = fetch_rules(terminal, terminal_path, api_post, api_url, token, worker_id)
+                if rules != last_rules:
+                    print("Réglages du compte démo synchronisés (lecture seule).")
+                    last_rules = rules
+        except (RuntimeError, OSError, ValueError, ImportError) as exc:
             print("Worker cycle failed (" + type(exc).__name__ + "); retrying")
         time.sleep(5)
 
