@@ -16,6 +16,10 @@ def validate_config(api_url, token, worker_id, terminal_path, verifier_path, acc
     validate_terminal_path(verifier_path)
     if ntpath.normcase(ntpath.normpath(terminal_path)) == ntpath.normcase(ntpath.normpath(verifier_path)):
         raise ValueError("Le terminal de gestion doit être distinct du terminal de vérification")
+    if not os.path.isfile(terminal_path) or not os.path.isfile(verifier_path):
+        raise ValueError("Terminal de gestion ou de vérification introuvable")
+    if os.path.samefile(terminal_path, verifier_path):
+        raise ValueError("Les deux chemins désignent le même terminal")
     if not account.isdigit():
         raise ValueError("Compte démo local non configuré")
     if not (os.getenv("MYFLOWFX_DEMO_AUTO_BREAK_EVEN") == "1" or
