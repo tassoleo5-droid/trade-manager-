@@ -106,6 +106,21 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
     }
   });
 
+  app.post('/api/demo/accounts/:id/retry',authMiddleware,noStore,async(req,res)=>{
+    if(!validUuid(req.params.id)) return res.status(400).json({error:'Identifiant invalide'});
+    let client;
+    try {
+      client=await pool.connect(); await client.query('BEGIN');
+      const account=await client.query("SELECT id FROM demo_mt5_accounts WHERE id=$1 AND user_id=$2 AND status='failed' AND password_enc IS NOT NULL FOR UPDATE",[req.params.id,req.user.id]);
+      if(!account.rowCount) {await client.query('ROLLBACK');return res.status(409).json({error:'Nouvelle vérification indisponible'});}
+      const job=await client.query("UPDATE demo_mt5_jobs SET state='queued',worker_id=NULL,lease_until=NULL,attempts=0,completed_at=NULL WHERE account_id=$1 AND state='failed' RETURNING id",[req.params.id]);
+      if(!job.rowCount) {await client.query('ROLLBACK');return res.status(409).json({error:'Nouvelle vérification indisponible'});}
+      await client.query("UPDATE demo_mt5_accounts SET status='pending',last_error_code=NULL,updated_at=NOW() WHERE id=$1",[req.params.id]);
+      await client.query('COMMIT');res.json({status:'pending'});
+    } catch(_e) {if(client) await client.query('ROLLBACK').catch(()=>{});res.status(500).json({error:'Nouvelle vérification impossible'});}
+    finally {if(client) client.release();}
+  });
+
   app.delete('/api/demo/accounts/:id',authMiddleware,noStore,async(req,res)=>{
     if(!validUuid(req.params.id)) return res.status(400).json({error:'Identifiant invalide'});
     try {
