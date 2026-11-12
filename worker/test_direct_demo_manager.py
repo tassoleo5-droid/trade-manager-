@@ -113,6 +113,28 @@ class ManagerTests(unittest.TestCase):
         self.assertEqual(len(m.orders),1)
         self.assertEqual(m.positions[0].volume,.5)
         self.assertIn("Réglages TP modifiés après clôture : vérification nécessaire",result)
+    def test_sell_side_uses_ask_and_preserves_original_risk(self):
+        m=FakeMT5()
+        m.positions[0].type=m.POSITION_TYPE_SELL
+        m.positions[0].sl=1.101
+        m.price=1.09899
+        self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.positions[0].sl,1.1)
+        self.assertEqual(m.positions[0].volume,.5)
+        m.price=1.09799
+        self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.positions,[])
+    def test_stale_tick_does_not_send_orders(self):
+        m=FakeMT5()
+        m.price=1.1011
+        m.symbol_info_tick=lambda symbol:NS(bid=m.price,ask=m.price,time=time.time()-60)
+        self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.orders,[])
+    def test_no_initial_stop_does_not_send_orders(self):
+        m=FakeMT5()
+        m.positions[0].sl=0
+        self.run_cycle(m,auto_be=True,auto_tp=True)
+        self.assertEqual(m.orders,[])
 
 if __name__=="__main__":
     unittest.main()
