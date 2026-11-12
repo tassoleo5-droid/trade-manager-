@@ -11,6 +11,9 @@ import json
 import time
 from contextlib import contextmanager
 
+FOREX_CURRENCIES = {"AUD","CAD","CHF","CNH","CZK","DKK","EUR","GBP","HKD",
+                    "HUF","JPY","MXN","NOK","NZD","PLN","SEK","SGD","TRY","USD","ZAR"}
+
 
 @contextmanager
 def execution_lock(state_path):
@@ -77,6 +80,8 @@ def checked_account(mt5, login, server):
             or str(getattr(account, "login", "")) != str(login)
             or str(getattr(account, "server", "")).casefold() != server.casefold()):
         raise RuntimeError("Compte MT5 démo non vérifié")
+    if not getattr(account, "trade_allowed", False) or not getattr(terminal, "trade_allowed", False):
+        raise RuntimeError("Trading automatique indisponible dans MT5")
 
 
 def finite_price(value):
@@ -129,6 +134,11 @@ def _manage_locked(mt5, identity, rules, state_path, *, auto_be=False, auto_tp=F
         if (not entry or not volume or not price or info is None or not tick_time
                 or time.time() - tick_time > 15 or tick_time - time.time() > 5):
             outcomes.append("Données de position indisponibles")
+            continue
+        base = str(getattr(info, "currency_base", "")).upper()
+        quote = str(getattr(info, "currency_profit", "")).upper()
+        if base not in FOREX_CURRENCIES or quote not in FOREX_CURRENCIES or base == quote:
+            outcomes.append("Instrument hors Forex ignoré")
             continue
         key = f"{server.casefold()}:{login}:{pos.ticket}"
         record = state.get(key)
