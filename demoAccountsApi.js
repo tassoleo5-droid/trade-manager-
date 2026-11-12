@@ -239,8 +239,9 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
         WHERE id=$1`,[jobId,status==='failed'?'failed':'completed']);
       await client.query('COMMIT');
       res.json({ok:true});
-    } catch(_e) {
+    } catch(e) {
       if(client) await client.query('ROLLBACK').catch(()=>{});
+      console.error('demo worker result database error code:', /^[A-Z0-9]{5}$/.test(e.code || '') ? e.code : 'UNKNOWN');
       res.status(500).json({error:'Impossible de valider le résultat'});
     } finally {
       if(client) client.release();
