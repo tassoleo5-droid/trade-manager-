@@ -20,9 +20,11 @@ def read_demo_identity(terminal, terminal_path):
         terminal.shutdown()
 
 
-def validate_rules_response(response, identity):
-    if not isinstance(response, dict) or response.get("executionEnabled") is not False:
+def validate_rules_response(response, identity, *, require_execution=False):
+    if not isinstance(response, dict) or type(response.get("executionEnabled")) is not bool:
         raise RuntimeError("Réglages reçus invalides")
+    if require_execution and not response["executionEnabled"]:
+        raise RuntimeError("Gestion automatique démo désactivée sur le site")
     if (response.get("login") != identity["login"] or
             str(response.get("server", "")).casefold() != identity["server"].casefold()):
         raise RuntimeError("Réglages associés à un autre compte")
