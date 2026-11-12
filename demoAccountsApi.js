@@ -231,8 +231,8 @@ function registerDemoAccountsApi(app, pool, authMiddleware) {
       await client.query(`
         UPDATE demo_mt5_accounts
         SET status=$2,last_error_code=$3,updated_at=NOW(),
-            password_enc=CASE WHEN $2='rejected_live' THEN NULL ELSE password_enc END
-        WHERE id=$1`,[r.rows[0].account_id,status,error]);
+            password_enc=CASE WHEN $4::boolean THEN NULL ELSE password_enc END
+        WHERE id=$1`,[r.rows[0].account_id,status,error,status==='rejected_live']);
       await client.query(`
         UPDATE demo_mt5_jobs
         SET state=$2,completed_at=NOW(),lease_until=NULL
