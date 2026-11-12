@@ -1,6 +1,6 @@
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
 const elements={};let saved;
-const source=fs.readFileSync(require('node:path').join(__dirname,'../public/index.html'),'utf8').match(/<script>([\\s\\S]*?)<\\/script>/)[1];
+const source=fs.readFileSync(require('node:path').join(__dirname,'../public/index.html'),'utf8').split('<script>')[1].split('</script>')[0];
 const rules={enabled:false,beThreshold:1.5,tpCount:2,tpPercents:[50,50],tpTargetsR:[1,3]};
 const ctx={console,window:{addEventListener(){}},document:{body:{style:{}},getElementById(id){return elements[id] ||= {style:{},value:'',textContent:'',innerHTML:''}}},localStorage:{getItem(){return null},setItem(){},removeItem(){}},fetch:async(url,opt)=>{if(url==='/api/rules'&&opt.method==='PUT'){saved=JSON.parse(opt.body);return {ok:true,json:async()=>({rules:saved})}}return {ok:true,json:async()=>({rules})}},setTimeout(){}};
 vm.createContext(ctx);vm.runInContext(source,ctx);
